@@ -6,7 +6,9 @@ Milestone aktif: **2 — integrasi inference lokal**, dikerjakan per langkah kec
 Milestone 1 selesai dan sudah di-commit (`6d9c5c9`); pengguna mengonfirmasi push.
 Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
 
-## Langkah M2.1 — lifecycle proses, siap review
+## Langkah M2.1 — lifecycle proses, sudah di-commit
+
+Commit lokal: `c93982f`. Worktree bersih saat memulai langkah M2.2.
 
 - ServerConfig memvalidasi executable, keberadaan model/header GGUF, port,
   context size, dan threads. Header GGUF bukan validasi model lengkap.
@@ -22,10 +24,21 @@ Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
   HTTP client, generation, cancel, dan benchmark belum diimplementasikan.
 - Full suite: **34 PASS** (18 sebelumnya + 16 tes runtime); diff check PASS.
 
-Sesudah review/push M2.1: siapkan build llama.cpp yang dipatok dan artefak GGUF
-smoke test. Cocokkan opsi CLI dengan binary terpilih sebelum menjalankannya.
-Kemudian health check, adapter prompt/response, dan benchmark pada langkah
-berikutnya. Jangan melanjutkan seluruh M2 sekaligus tanpa checkpoint pengguna.
+## Langkah M2.2 — setup artefak selesai, siap review/push
+
+- scripts/setup_local_runtime.sh menyiapkan source llama.cpp v0.6.0 yang dipatok,
+  build Release CPU, dan GGUF resmi Qwen3-0.6B Q8_0 dengan revision/SHA256 tetap.
+- Setup manual terpisah dari runtime aplikasi; tidak ada dependency Python baru.
+- Panduan/source/checksum tercatat di docs/local-runtime.md.
+- Script memeriksa commit, checksum, dan kompatibilitas opsi CLI setelah build.
+- Pengguna berhasil menjalankan script setup; source/build/model tersedia lokal.
+- Pemeriksaan langsung asisten: source commit
+  d81235049384534c167caea52b85a694f6103d14, binary 0.6.0 (d812350), SHA256 model
+  sesuai pin, header GGUF dan semua opsi CLI adapter: PASS.
+- Syntax Bash, build package, lockfile, dan diff check: PASS; tes aplikasi tetap
+  34 PASS. Tidak ada dependency Python baru.
+- Model belum dimuat. Belum ada hasil inference atau benchmark yang diklaim.
+- Health check, adapter prompt/response, dan benchmark masuk langkah berikutnya.
 
 ## Sudah ditulis
 
@@ -106,7 +119,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M2.1: `menyiapkan pengelolaan proses model lokal`.
+Usulan pesan commit M2.2: `menyiapkan runtime dan model smoke test`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M2.1. Berhenti setelah langkah
+sendiri. Asisten belum menjalankan commit/push M2.2. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.
