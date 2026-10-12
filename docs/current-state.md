@@ -1,11 +1,31 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-11.
+Terakhir diperbarui: 2026-10-12.
 
-Milestone terakhir: **1 — fondasi aplikasi desktop, selesai dan menunggu review**.
-Implementasi dan seluruh automated tests lulus. Window desktop berhasil dibuka,
-dikonfirmasi screenshot pengguna. Pengguna juga mengonfirmasi resize serta
-tutup–buka ulang berjalan tanpa error. Konfirmasi manual test bukan izin commit.
+Milestone aktif: **2 — integrasi inference lokal**, dikerjakan per langkah kecil.
+Milestone 1 selesai dan sudah di-commit (`6d9c5c9`); pengguna mengonfirmasi push.
+Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
+
+## Langkah M2.1 — lifecycle proses, siap review
+
+- ServerConfig memvalidasi executable, keberadaan model/header GGUF, port,
+  context size, dan threads. Header GGUF bukan validasi model lengkap.
+- LocalServerProcess mengelola satu child process tanpa shell, dengan start,
+  status proses hidup, stop, timeout shutdown, dan kill bila diperlukan.
+- Argumen eksplisit: loopback 127.0.0.1, offline, CPU, satu slot, tanpa web UI,
+  agent, atau multimodal projector. Environment LLAMA_* dan token HF disaring.
+- stdout/stderr native belum diteruskan atau disimpan. Hanya lifecycle generik
+  dicatat; diagnosis pemuatan terstruktur perlu diselesaikan sebelum smoke test
+  model asli. Tidak ada dependency baru atau perubahan UI.
+- Tes memakai mock subprocess. **Belum ada binary/model asli yang dijalankan**.
+  is_running hanya berarti proses hidup, bukan model siap. Health check,
+  HTTP client, generation, cancel, dan benchmark belum diimplementasikan.
+- Full suite: **34 PASS** (18 sebelumnya + 16 tes runtime); diff check PASS.
+
+Sesudah review/push M2.1: siapkan build llama.cpp yang dipatok dan artefak GGUF
+smoke test. Cocokkan opsi CLI dengan binary terpilih sebelum menjalankannya.
+Kemudian health check, adapter prompt/response, dan benchmark pada langkah
+berikutnya. Jangan melanjutkan seluruh M2 sekaligus tanpa checkpoint pengguna.
 
 ## Sudah ditulis
 
@@ -31,14 +51,15 @@ tutup–buka ulang berjalan tanpa error. Konfirmasi manual test bukan izin commi
 - Akses desktop dari sesi ini ditolak: Wayland melaporkan Operation not permitted
   dan X11 tidak dapat dihubungi. Ini membatasi verifikasi desktop, bukan bukti
   bahwa instalasi Qt pada sesi desktop pengguna rusak.
-- .git tidak dikenali sebagai repository valid dan direktori tersebut tidak
-  dapat ditulis oleh sesi ini. Remote lokal belum dikonfigurasi oleh asisten.
+- Repository lokal sekarang valid; worktree bersih sebelum pekerjaan M2.1.
+  origin mengarah ke https://github.com/venddraa/benzie.git. Metadata Git tetap
+  read-only pada sesi asisten; commit/push diserahkan kepada pengguna.
 - Pengguna sudah membuat repository https://github.com/venddraa/benzie.git.
   Pengguna menjalankan push sendiri; asisten hanya memberikan perintah siap salin.
 - README disederhanakan menjadi `benzie` sesuai permintaan pengguna. Panduan
   setup, menjalankan aplikasi, dan testing dipindahkan ke docs/development.md.
 
-## Hasil verifikasi
+## Hasil verifikasi Milestone 1 (baseline)
 
 - Python 3.12.14, uv 0.12.3, pytest 9.1.1, PySide6/Qt 6.12.0.
 - pytest: **18 PASS, tanpa SKIP**, termasuk window open/close melalui offscreen.
@@ -77,7 +98,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-LLM/model, llama-server, chat, history, model settings, launcher Applications,
+Inference dengan model asli, health check, chat, history, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -85,6 +106,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit: `menyiapkan fondasi aplikasi Benzie`.
+Usulan pesan commit M2.1: `menyiapkan pengelolaan proses model lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push. Jangan mulai Milestone 2 otomatis.
+sendiri. Asisten belum menjalankan commit/push M2.1. Berhenti setelah langkah
+kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

@@ -58,3 +58,8 @@ Repository yang diberikan pengguna: https://github.com/venddraa/benzie.git.
 README cukup berisi `benzie`; panduan development tetap berada di docs/.
 Satu milestone belum boleh disebut selesai jika manual smoke test wajib belum
 berhasil. Kendala dependency/display harus dilaporkan, bukan dianggap PASS.
+
+Pembaruan 2026-10-12: pengguna meminta checkpoint lebih kecil agar pekerjaan
+tidak menumpuk. M2 dikerjakan per langkah yang diuji dan dapat di-commit/push
+terpisah. Lifecycle subprocess memakai standard library; HTTP client baru
+ditambahkan saat implementasi request inference membutuhkannya.

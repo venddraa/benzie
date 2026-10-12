@@ -5,8 +5,8 @@ Milestone implementasi berbeda dari nomor versi produk.
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | 0 | Audit tanpa perubahan sistem | Selesai; fondasi disetujui |
-| 1 | Python, window Widgets, inisialisasi SQLite, basic tests, docs | Selesai; 18 tests PASS, manual launch/resize/restart PASS; menunggu review |
-| 2 | llama-server + satu model kecil, prompt/response, benchmark | Belum dimulai |
+| 1 | Python, window Widgets, inisialisasi SQLite, basic tests, docs | Selesai; sudah di-commit/push pengguna |
+| 2 | llama-server + satu model kecil, prompt/response, benchmark | M2.1 lifecycle proses siap review; inference asli belum berjalan |
 | 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | Belum dimulai |
 | 4 | New/open/continue conversation; persistence pesan | Belum dimulai |
 | 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | Belum dimulai |
@@ -14,6 +14,10 @@ Milestone implementasi berbeda dari nomor versi produk.
 V0.1 berhasil bila aplikasi dibuka dari desktop Fedora, model lokal dapat
 dipilih/dimuat, chat bekerja, dan history bertahan setelah restart, termasuk
 ketika internet tidak tersedia. Setelah itu berhenti untuk evaluasi.
+
+M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
+dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
+diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.
 
 Semua milestone membutuhkan test relevan dan review pengguna. Commit/push
 menunggu persetujuan; jangan otomatis melanjutkan milestone berikutnya.

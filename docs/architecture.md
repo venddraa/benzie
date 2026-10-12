@@ -1,6 +1,6 @@
 # Arsitektur saat ini
 
-Implementasi Milestone 1; bukan deskripsi fitur yang belum dibangun.
+Implementasi desktop Milestone 1 dan modul lifecycle proses pada langkah M2.1.
 
 ```text
 app.py (entry point)
@@ -32,6 +32,19 @@ Runtime tidak memanggil jaringan, shell, package manager, atau downloader.
 PySide6 satu-satunya dependency runtime langsung; SQLite/config/logging memakai
 standard library. UI menggunakan Widgets bawaan tanpa design system.
 
-Belum ada InferenceEngine, worker inference, HTTP client, model loader, atau
-abstraksi tools. Strategi llama-server telah disetujui untuk tahap berikutnya,
-tetapi belum diimplementasikan.
+`inference/server.py` menyediakan ServerConfig dan LocalServerProcess, belum
+dihubungkan ke app/UI. Modul memakai subprocess dengan shell=False untuk
+menjalankan binary runtime lokal; tidak memberikan shell/tools kepada model.
+Parameter dibatasi pada file lokal, port, context, dan threads. Binding loopback,
+offline, CPU, serta penonaktifan web UI/agent/projector ditetapkan eksplisit.
+Environment LLAMA_* tidak diwarisi agar konfigurasi eksternal tidak mengaktifkan
+fitur lain. Output native dibuang sementara; log hanya lifecycle generik.
+
+Pemanggil wajib stop dan memakai thread pemilik yang sama. Shutdown menunggu
+3 detik sebelum kill lalu menunggu maksimal 3 detik lagi. Handle dipertahankan
+jika cleanup gagal. Proses hidup tidak dianggap model siap. Belum ada health
+check, InferenceEngine, HTTP client, generation, atau worker UI.
+
+Opsi CLI diperiksa terhadap [dokumentasi resmi llama-server](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
+pada 2026-10-12. Belum diverifikasi terhadap binary terpasang; versi runtime
+akan dipatok dan kecocokan opsi diperiksa pada langkah berikutnya.
