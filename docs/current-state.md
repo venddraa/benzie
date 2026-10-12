@@ -2,7 +2,7 @@
 
 Terakhir diperbarui: 2026-10-12.
 
-Milestone aktif: **2 — integrasi inference lokal**, dikerjakan per langkah kecil.
+Milestone terakhir: **2 — integrasi inference lokal, selesai; M2.4 siap review/push**.
 Milestone 1 selesai dan sudah di-commit (`6d9c5c9`); pengguna mengonfirmasi push.
 Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
 
@@ -38,7 +38,9 @@ Commit lokal: `6d45061`. Worktree bersih saat memulai M2.3.
 - Model belum dimuat. Belum ada hasil inference atau benchmark yang diklaim.
 - Health check, adapter prompt/response, dan benchmark masuk langkah berikutnya.
 
-## Langkah M2.3 — adapter teks selesai, siap review/push
+## Langkah M2.3 — adapter teks selesai, sudah di-commit
+
+Commit lokal: `42f119b`; pengguna mengonfirmasi push. Worktree bersih sebelum M2.4.
 
 - Protocol InferenceEngine dan LlamaServerEngine: start, generate sinkron, close;
   tanpa Qt atau dependency baru. System prompt dasar berasal dari core.
@@ -62,6 +64,34 @@ Commit lokal: `6d45061`. Worktree bersih saat memulai M2.3.
 - Inference asli terverifikasi untuk satu prompt sintetis. Kualitas jawaban
   belum dievaluasi; Qwen3-0.6B tetap hanya model smoke test. UI belum berubah.
 - Benchmark RAM/load time/TTFT/tokens per second tetap langkah berikutnya.
+
+## Langkah M2.4 — benchmark dan streaming selesai, siap review/push
+
+- generate_stream menghasilkan event teks/usage/timing, tanpa dependency baru.
+  Parser SSE memvalidasi DONE, respons invalid, batas ukuran, dan metadata.
+  Error atau early close menghentikan generation/proses; sukses tetap siap.
+- Script benchmark: tiga restart proses, metrik tiap run dan median, model bytes,
+  load, TTFT client, decode tokens/sec, RSS/HWM dan CPU runtime melalui /proc.
+- Prompt sintetis tetap. JSON di data/ yang diabaikan Git, tanpa prompt, jawaban,
+  API key, atau path personal. Laporan yang sudah ada tidak ditimpa.
+- **80 tests PASS**, build/syntax/diff check PASS. Socket ditolak pada sesi
+  asisten; pengguna menjalankan benchmark asli dari terminal desktop.
+- Tiga pengulangan PASS; JSON lokal diperiksa asisten, summary konsisten dengan
+  setiap run dan seluruh run menghasilkan 128 token.
+- Qwen3-0.6B Q8_0, file 639.446.688 bytes; CPU empat thread, context 2.048.
+  Median load 1,0355 s, TTFT client 0,4954 s, decode 43,1655 tok/s.
+  Peak RSS terbesar 948.899.840 bytes (904,94 MiB). Average CPU tiap run
+  291,78–297,79% (sekitar tiga core); bukan persentase seluruh CPU laptop.
+- Hasil di data/benchmark-20261012T061828308289Z.json tetap diabaikan Git.
+  Angka ringkas dan batas interpretasi dicatat di docs/benchmark.md.
+- Baseline native llama-bench berhasil dijalankan: pp128 197,94 ± 19,36 tok/s,
+  tg128 47,31 ± 0,65 tok/s, CPU empat thread, tiga sampel, warmup default.
+  Ini microbenchmark tanpa HTTP, bukan hasil TTFT/load/RAM pipeline.
+- Definisi metrik/cache/CPU terdapat di docs/benchmark.md. UI belum berubah.
+
+Target Milestone 2 tercapai: runtime/model lokal, prompt/response, streaming,
+serta baseline ukuran/load/RAM/TTFT/tokens per second terukur. Kualitas model
+belum dievaluasi; Qwen3-0.6B tetap model smoke test. Jangan mulai M3 otomatis.
 
 ## Sudah ditulis
 
@@ -134,7 +164,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Streaming, benchmark lengkap, chat UI, history, model settings, launcher Applications,
+Chat UI, history, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -142,7 +172,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M2.3: `menambah inference teks lokal`.
+Usulan pesan commit M2.4: `menambah streaming dan benchmark model lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M2.3. Berhenti setelah langkah
+sendiri. Asisten belum menjalankan commit/push M2.4. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

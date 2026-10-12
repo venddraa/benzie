@@ -1,6 +1,7 @@
 """Adapter teks sinkron melalui HTTP loopback; tanpa proxy, redirect, atau cloud."""
 
 import http.client
+from collections.abc import Iterator
 import json
 import logging
 import math
@@ -9,6 +10,7 @@ import time
 from typing import Protocol
 
 from benzie.inference.server import LocalServerProcess, ServerConfig
+from benzie.inference.stream import GenerationEvent, StreamError, iter_events
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,8 @@ class InferenceEngine(Protocol):
     def start(self, *, timeout: float = 120) -> None: ...
     def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
                  temperature: float = 0.7, timeout: float = 120) -> str: ...
+    def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
+                        temperature: float = 0.7, timeout: float = 120) -> Iterator[GenerationEvent]: ...
     def close(self) -> None: ...
 
 
@@ -35,6 +39,10 @@ class LlamaServerEngine:
         self._key = secrets.token_urlsafe(32)
         self._server = LocalServerProcess(config, api_key=self._key)
         self._model_id: str | None = None
+
+    @property
+    def process_id(self) -> int | None:
+        return self._server.process_id
 
     def _request(self, method: str, path: str, *, timeout: float, payload=None):
         # HTTPConnection tidak memakai proxy environment atau mengikuti redirect.
@@ -100,8 +108,8 @@ class LlamaServerEngine:
             self.close()
             raise
 
-    def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
-                 temperature: float = 0.7, timeout: float = 120) -> str:
+    def _generation_payload(self, prompt: str, system_prompt: str, max_tokens: int,
+                            temperature: float, timeout: float) -> dict:
         _valid_timeout(timeout)
         if not isinstance(prompt, str) or not prompt.strip() or not isinstance(system_prompt, str):
             raise ValueError("Prompt harus berupa teks dan tidak boleh kosong.")
@@ -111,14 +119,19 @@ class LlamaServerEngine:
             raise ValueError("Temperature harus berada pada rentang 0–2.")
         if self._model_id is None or not self._server.is_running:
             raise InferenceError("Model lokal belum siap.")
+        return {
+            "model": self._model_id,
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
+            "max_tokens": max_tokens, "temperature": temperature, "stream": False,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+
+    def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
+                 temperature: float = 0.7, timeout: float = 120) -> str:
+        payload = self._generation_payload(prompt, system_prompt, max_tokens, temperature, timeout)
         logger.info("Generation dimulai")
         try:
-            status, data = self._request("POST", "/v1/chat/completions", timeout=timeout, payload={
-                "model": self._model_id,
-                "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
-                "max_tokens": max_tokens, "temperature": temperature, "stream": False,
-                "chat_template_kwargs": {"enable_thinking": False},
-            })
+            status, data = self._request("POST", "/v1/chat/completions", timeout=timeout, payload=payload)
             if status != 200:
                 raise InferenceError(f"Generation ditolak runtime (HTTP {status}).")
             try:
@@ -133,6 +146,35 @@ class LlamaServerEngine:
             raise
         logger.info("Generation selesai")
         return content
+
+    def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
+                        temperature: float = 0.7, timeout: float = 120) -> Iterator[GenerationEvent]:
+        """Iterator GenerationEvent; pemanggil harus close iterator bila berhenti dini.
+
+        Early close/error menghentikan runtime. Iterasi sukses membiarkan model
+        siap untuk request berikutnya. Timeout berlaku per operasi I/O.
+        """
+        payload = self._generation_payload(prompt, system_prompt, max_tokens, temperature, timeout)
+        payload.update(stream=True, stream_options={"include_usage": True})
+        connection = http.client.HTTPConnection("127.0.0.1", self._config.port, timeout=timeout)
+        completed = False
+        logger.info("Generation streaming dimulai")
+        try:
+            connection.request("POST", "/v1/chat/completions", body=json.dumps(payload).encode("utf-8"), headers={
+                "Content-Type": "application/json", "Authorization": f"Bearer {self._key}",
+            })
+            response = connection.getresponse()
+            if response.status != 200:
+                raise InferenceError(f"Streaming ditolak runtime (HTTP {response.status}).")
+            yield from iter_events(response)
+            completed = True
+            logger.info("Generation streaming selesai")
+        except (OSError, http.client.HTTPException, StreamError) as error:
+            raise InferenceError("Streaming runtime gagal, terputus, atau melewati timeout.") from error
+        finally:
+            connection.close()
+            if not completed:
+                self.close()
 
     def close(self) -> None:
         self._model_id = None

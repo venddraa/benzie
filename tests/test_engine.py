@@ -1,4 +1,5 @@
 import io
+import json
 from pathlib import Path
 from unittest.mock import Mock
 
@@ -6,6 +7,7 @@ import pytest
 
 from benzie.inference.engine import InferenceError, LlamaServerEngine
 from benzie.inference.server import LocalServerProcess, ServerConfig
+from benzie.inference.stream import GenerationEvent
 
 
 @pytest.fixture
@@ -178,3 +180,52 @@ def test_bind_failure_hint_does_not_expose_native_output():
     server._read_diagnostics(io.BytesIO(b"couldn't bind HTTP server socket, port: 8081\n"))
     assert "izin jaringan sesi" in server.failure_hint
     assert "8081" not in server.failure_hint
+
+
+@pytest.fixture
+def streaming_transport(monkeypatch):
+    response = io.BytesIO(b'data: {"choices":[{"delta":{"content":"Halo"}}]}\n\ndata: [DONE]\n\n')
+    response.status = 200
+    connection = Mock()
+    connection.getresponse.return_value = response
+    monkeypatch.setattr("benzie.inference.engine.http.client.HTTPConnection", Mock(return_value=connection))
+    return connection, response
+
+
+def test_complete_stream_keeps_model_ready(engine, streaming_transport):
+    client, process = engine
+    connection, _ = streaming_transport
+    client.start()
+    assert list(client.generate_stream("Halo", system_prompt="Benzie")) == [GenerationEvent("Halo")]
+    process.stop.assert_not_called()
+    connection.close.assert_called_once()
+    payload = json.loads(connection.request.call_args.kwargs["body"])
+    assert payload["stream"] is True
+    assert payload["stream_options"] == {"include_usage": True}
+
+
+def test_early_close_stops_generation(engine, streaming_transport):
+    client, process = engine
+    client.start()
+    events = client.generate_stream("Halo", system_prompt="Benzie")
+    assert next(events).text == "Halo"
+    events.close()
+    process.stop.assert_called_once()
+    streaming_transport[0].close.assert_called_once()
+
+
+@pytest.mark.parametrize("failure", ["disconnect", "http_error", "timeout"])
+def test_stream_failure_closes_connection_and_runtime(engine, streaming_transport, failure):
+    client, process = engine
+    connection, response = streaming_transport
+    client.start()
+    if failure == "disconnect":
+        response.seek(0, 2)
+    elif failure == "http_error":
+        response.status = 500
+    else:
+        connection.getresponse.side_effect = TimeoutError()
+    with pytest.raises(InferenceError):
+        list(client.generate_stream("Halo", system_prompt="Benzie"))
+    connection.close.assert_called_once()
+    process.stop.assert_called_once()

@@ -87,6 +87,10 @@ class LocalServerProcess:
             stream.close()
 
     @property
+    def process_id(self) -> int | None:
+        return self._process.pid if self.is_running else None
+
+    @property
     def is_running(self) -> bool:
         return self._process is not None and self._process.poll() is None
 

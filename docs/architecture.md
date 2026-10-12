@@ -56,7 +56,16 @@ API dipakai berurutan dari satu pemanggil/thread, belum thread-safe.
 
 System prompt dasar di core/prompts.py tidak mengklaim file/tools/memory.
 Smoke script mengirim satu prompt sintetis dan selalu menutup engine.
-Belum ada streaming, worker UI, history dalam prompt, atau benchmark lengkap.
+generate_stream sekarang membaca SSE, menghasilkan GenerationEvent berisi teks
+serta statistik token/timing. EOF tanpa DONE ditolak. Error dan early close
+menghentikan proses; stream sukses tetap memuat model. Pemanggil harus menutup
+iterator jika berhenti dini. Belum ada worker UI atau history dalam prompt.
+
+inference/benchmark.py membaca metrik Linux proses milik engine, dan script
+benchmark mengukur tiga restart dengan prompt sintetis. JSON hanya metrik,
+di data/ yang diabaikan Git; bukan conversation persistence. Pengukuran asli
+pipeline lulus tiga restart di terminal pengguna. Hasil dan definisi metrik
+tercatat di docs/benchmark.md; tidak menyatakan kualitas model dari throughput.
 
 Opsi CLI diperiksa terhadap [dokumentasi resmi llama-server](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 pada 2026-10-12 dan diverifikasi terhadap binary v0.6.0 (d812350) pada M2.2.
