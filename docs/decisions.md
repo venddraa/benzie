@@ -63,3 +63,8 @@ Pembaruan 2026-10-12: pengguna meminta checkpoint lebih kecil agar pekerjaan
 tidak menumpuk. M2 dikerjakan per langkah yang diuji dan dapat di-commit/push
 terpisah. Lifecycle subprocess memakai standard library; HTTP client baru
 ditambahkan saat implementasi request inference membutuhkannya.
+
+Pembaruan M2.3: baseline HTTP sinkron memakai http.client standard library untuk
+satu request teks. HTTPX yang sebelumnya diusulkan belum diperlukan; evaluasi
+ulang saat streaming/UI. API key sementara membedakan server milik engine dari
+proses lain pada port sama. UI belum berubah.

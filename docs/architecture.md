@@ -25,10 +25,11 @@ Default data mengikuti XDG_DATA_HOME, dengan fallback `~/.local/share/benzie`.
 `--data-dir` memungkinkan lokasi development/test terpisah. Resolusi lokasi
 sendiri tidak membuat direktori. File config JSON belum diperlukan saat ini.
 
-Logging hanya event startup, kesiapan skema, jenis kegagalan, dan shutdown ke
-stderr; tidak membuat log file. Tidak ada conversation atau inference saat ini.
+Logging hanya event lifecycle ke stderr, tanpa log file atau isi conversation.
+Aplikasi desktop belum mempunyai chat/inference aktif.
 
-Runtime tidak memanggil jaringan, shell, package manager, atau downloader.
+Desktop belum memanggil runtime. Adapter memakai HTTP loopback, tanpa cloud,
+shell, package manager, atau downloader.
 PySide6 satu-satunya dependency runtime langsung; SQLite/config/logging memakai
 standard library. UI menggunakan Widgets bawaan tanpa design system.
 
@@ -38,13 +39,27 @@ menjalankan binary runtime lokal; tidak memberikan shell/tools kepada model.
 Parameter dibatasi pada file lokal, port, context, dan threads. Binding loopback,
 offline, CPU, serta penonaktifan web UI/agent/projector ditetapkan eksplisit.
 Environment LLAMA_* tidak diwarisi agar konfigurasi eksternal tidak mengaktifkan
-fitur lain. Output native dibuang sementara; log hanya lifecycle generik.
+fitur lain. API key acak engine ditetapkan melalui environment child. stderr
+dibaca thread daemon; hanya hint generik disimpan, tanpa baris mentah. stdout
+dibuang. Tidak ada prompt/jawaban/API key yang dicatat ke log.
 
 Pemanggil wajib stop dan memakai thread pemilik yang sama. Shutdown menunggu
 3 detik sebelum kill lalu menunggu maksimal 3 detik lagi. Handle dipertahankan
-jika cleanup gagal. Proses hidup tidak dianggap model siap. Belum ada health
-check, InferenceEngine, HTTP client, generation, atau worker UI.
+jika cleanup gagal. Proses hidup tidak dianggap model siap.
+
+`inference/engine.py` menyediakan protocol InferenceEngine dan adapter sinkron
+LlamaServerEngine. Startup memakai deadline, /health, dan /v1/models dengan API
+key untuk verifikasi server. HTTPConnection hanya menuju 127.0.0.1 tanpa proxy
+atau redirect. Model ID dibaca dari runtime. generate menerima teks/system
+prompt, mengambil message.content, serta menutup proses saat error/timeout I/O.
+API dipakai berurutan dari satu pemanggil/thread, belum thread-safe.
+
+System prompt dasar di core/prompts.py tidak mengklaim file/tools/memory.
+Smoke script mengirim satu prompt sintetis dan selalu menutup engine.
+Belum ada streaming, worker UI, history dalam prompt, atau benchmark lengkap.
 
 Opsi CLI diperiksa terhadap [dokumentasi resmi llama-server](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
-pada 2026-10-12. Belum diverifikasi terhadap binary terpasang; versi runtime
-akan dipatok dan kecocokan opsi diperiksa pada langkah berikutnya.
+pada 2026-10-12 dan diverifikasi terhadap binary v0.6.0 (d812350) pada M2.2.
+Kontrak health/models/chat mengikuti dokumentasi versi v0.6.0. Smoke test asli
+lulus di terminal pengguna: startup, respons teks, dan cleanup. Socket tetap
+ditolak pada sesi asisten, sehingga eksekusi inference dilakukan pengguna.

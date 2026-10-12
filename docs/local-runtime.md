@@ -57,4 +57,28 @@ Hasil 2026-10-12: pengguna berhasil menjalankan setup. Asisten memeriksa langsun
 commit source, binary 0.6.0 (d812350), SHA256 dan header model, serta semua opsi
 CLI yang dipakai ServerConfig: PASS. M2.2 selesai untuk setup artefak.
 Build/download dilakukan melalui terminal pengguna karena DNS sesi asisten
-terbatas. Model belum dimuat; benchmark belum dilakukan.
+terbatas. Pada akhir M2.2 model belum dimuat; hasil M2.3 tercatat di bawah.
+
+## Smoke test M2.3
+
+Setelah setup berhasil, dari root repository:
+
+```bash
+.venv/bin/python scripts/smoke_local_inference.py
+```
+
+Script menyalakan server terautentikasi di 127.0.0.1:8081, menunggu kesiapan,
+mengirim prompt sintetis Bahasa Indonesia, menampilkan jawaban, lalu menutup
+proses. Tidak membutuhkan internet sesudah artefak tersedia. --port 8082 bisa
+dipakai bila port 8081 sedang digunakan. --binary/--model tersedia untuk path
+eksplisit. Ctrl+C menjalankan cleanup. Jangan menjalankan dua script pada port
+yang sama. Jika gagal, kirim pesan error generik, tanpa data conversation.
+
+Kontrak mengikuti [dokumentasi server v0.6.0](https://github.com/ggml-org/llama.cpp/blob/v0.6.0/tools/server/README.md).
+Respons sinkron merupakan baseline; streaming/benchmark menyusul. Timeout
+generation sekarang timeout I/O, bukan deadline total seluruh operasi.
+
+Hasil M2.3, 2026-10-12: pengguna melaporkan model siap dalam 1,02 detik,
+respons Bahasa Indonesia diterima, dan `Smoke test PASS; proses runtime sudah
+ditutup.` Inference satu prompt terverifikasi. Durasi startup satu kali bukan
+TTFT atau benchmark. Tidak mengklaim kualitas model dari hasil smoke test ini.

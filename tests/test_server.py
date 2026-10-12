@@ -22,6 +22,7 @@ def spawn(monkeypatch):
     process = Mock()
     process.poll.return_value = None
     process.wait.return_value = 0
+    process.stderr = None
     factory = Mock(return_value=process)
     monkeypatch.setattr("benzie.inference.server.subprocess.Popen", factory)
     return factory, process
@@ -43,7 +44,7 @@ def test_launch_is_local_cpu_only_and_does_not_inherit_llama_overrides(config, s
     assert options["shell"] is False
     assert not any(key.startswith("LLAMA_") for key in options["env"])
     assert "HF_TOKEN" not in options["env"]
-    assert options["stderr"] == subprocess.DEVNULL
+    assert options["stderr"] == subprocess.PIPE
     assert server.is_running
     server.stop()
 
