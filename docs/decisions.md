@@ -68,3 +68,10 @@ Pembaruan M2.3: baseline HTTP sinkron memakai http.client standard library untuk
 satu request teks. HTTPX yang sebelumnya diusulkan belum diperlukan; evaluasi
 ulang saat streaming/UI. API key sementara membedakan server milik engine dari
 proses lain pada port sama. UI belum berubah.
+
+M3.1, 2026-10-13: setelah transcript pengguna menunjukkan sapaan Inggris
+berulang, system prompt dasar diperjelas agar menjawab permintaan langsung dan
+menggunakan Bahasa Indonesia secara default; permintaan bahasa lain tetap
+diikuti. Ini instruksi dasar, bukan personality kompleks. Setelah perubahan,
+pengguna mengonfirmasi dua respons terkait bahasa dan nama melalui transcript
+UI. Evaluasi kualitas menyeluruh belum dilakukan; Qwen3-0.6B tetap smoke test.

@@ -3,8 +3,8 @@
 Personal AI assistant lokal milik pengguna. Nama Benzie berasal dari kucing
 jantan pertama yang diadopsi pengguna; tidak mempunyai filosofi branding tambahan.
 
-Saat ini: **Milestone 1, fondasi desktop**. Window menampilkan status database.
-Belum ada model, chat, history percakapan, memory, tools, atau voice.
+Saat ini: **M3.1, uji chat desktop**. Panduan: [chat UI](chat-ui.md).
+History tersimpan, memory, tools, dan voice belum diimplementasikan.
 Status verifikasi terbaru ada di [current-state](current-state.md).
 
 ## Kebutuhan

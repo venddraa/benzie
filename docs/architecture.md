@@ -1,12 +1,13 @@
 # Arsitektur saat ini
 
-Implementasi desktop Milestone 1 dan modul lifecycle proses pada langkah M2.1.
+Implementasi desktop/core/inference sampai langkah M3.1.
 
 ```text
 app.py (entry point)
   ├── config.py → lokasi data
   ├── core.startup → persistence.database → SQLite lokal
-  └── ui.main_window ← StartupState
+  └── ui.main_window ← StartupState + ChatService
+        └── ChatWorker (QThread) → core.chat → InferenceEngine → llama-server
 ```
 
 `app.py` membuat QApplication, meminta core menginisialisasi data, kemudian
@@ -26,15 +27,15 @@ Default data mengikuti XDG_DATA_HOME, dengan fallback `~/.local/share/benzie`.
 sendiri tidak membuat direktori. File config JSON belum diperlukan saat ini.
 
 Logging hanya event lifecycle ke stderr, tanpa log file atau isi conversation.
-Aplikasi desktop belum mempunyai chat/inference aktif.
+Transcript chat hanya berada dalam widget, belum disimpan ke SQLite.
 
-Desktop belum memanggil runtime. Adapter memakai HTTP loopback, tanpa cloud,
+Chat desktop memanggil core melalui worker. Adapter memakai HTTP loopback, tanpa cloud,
 shell, package manager, atau downloader.
 PySide6 satu-satunya dependency runtime langsung; SQLite/config/logging memakai
 standard library. UI menggunakan Widgets bawaan tanpa design system.
 
-`inference/server.py` menyediakan ServerConfig dan LocalServerProcess, belum
-dihubungkan ke app/UI. Modul memakai subprocess dengan shell=False untuk
+`inference/server.py` menyediakan ServerConfig dan LocalServerProcess,
+digunakan engine lewat core/worker. Modul memakai subprocess dengan shell=False untuk
 menjalankan binary runtime lokal; tidak memberikan shell/tools kepada model.
 Parameter dibatasi pada file lokal, port, context, dan threads. Binding loopback,
 offline, CPU, serta penonaktifan web UI/agent/projector ditetapkan eksplisit.
@@ -59,7 +60,19 @@ Smoke script mengirim satu prompt sintetis dan selalu menutup engine.
 generate_stream sekarang membaca SSE, menghasilkan GenerationEvent berisi teks
 serta statistik token/timing. EOF tanpa DONE ditolak. Error dan early close
 menghentikan proses; stream sukses tetap memuat model. Pemanggil harus menutup
-iterator jika berhenti dini. Belum ada worker UI atau history dalam prompt.
+iterator jika berhenti dini. History pesan sebelumnya belum masuk prompt.
+
+`core/chat.py` menyediakan ChatService, tanpa Qt: membuat engine di thread
+pemanggil, menyampaikan event loading/generating/text, dan memastikan cleanup.
+Runtime dimuat/ditutup per pesan pada baseline M3.1. `ui/chat_worker.py` hanya
+menjalankan core di QThread dan mengirim signal ke window. Widget memodifikasi
+transcript dengan plain text agar teks pengguna/model tidak dianggap HTML.
+Satu request aktif; kontrol input dinonaktifkan sampai selesai/error.
+
+Close saat worker aktif ditunda sampai selesai dan cleanup; tidak memakai
+QThread.terminate. Cancel responsif belum tersedia. app.py menerima pasangan
+--runtime/--model serta --port untuk konfigurasi sementara; tidak menetapkan
+model tertentu sebagai default identitas desktop. Tanpa keduanya input nonaktif.
 
 inference/benchmark.py membaca metrik Linux proses milik engine, dan script
 benchmark mengukur tiga restart dengan prompt sintetis. JSON hanya metrik,

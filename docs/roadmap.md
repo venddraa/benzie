@@ -6,8 +6,8 @@ Milestone implementasi berbeda dari nomor versi produk.
 | --- | --- | --- |
 | 0 | Audit tanpa perubahan sistem | Selesai; fondasi disetujui |
 | 1 | Python, window Widgets, inisialisasi SQLite, basic tests, docs | Selesai; sudah di-commit/push pengguna |
-| 2 | llama-server + satu model kecil, prompt/response, benchmark | Selesai; M2.4 80 tests dan benchmark asli PASS, siap review/push |
-| 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | Belum dimulai |
+| 2 | llama-server + satu model kecil, prompt/response, benchmark | Selesai; di-commit/push pengguna |
+| 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | M3.1 89 tests dan manual kirim/jawab PASS, siap review/push; cancel belum |
 | 4 | New/open/continue conversation; persistence pesan | Belum dimulai |
 | 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | Belum dimulai |
 

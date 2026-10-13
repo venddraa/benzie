@@ -1,8 +1,9 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-12.
+Terakhir diperbarui: 2026-10-13.
 
-Milestone terakhir: **2 — integrasi inference lokal, selesai; M2.4 siap review/push**.
+Milestone aktif: **3 — menghubungkan inference ke UI**, per langkah kecil.
+Milestone 2 selesai dan di-commit (`4d7b2e1`); worktree bersih sebelum M3.1.
 Milestone 1 selesai dan sudah di-commit (`6d9c5c9`); pengguna mengonfirmasi push.
 Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
 
@@ -65,7 +66,7 @@ Commit lokal: `42f119b`; pengguna mengonfirmasi push. Worktree bersih sebelum M2
   belum dievaluasi; Qwen3-0.6B tetap hanya model smoke test. UI belum berubah.
 - Benchmark RAM/load time/TTFT/tokens per second tetap langkah berikutnya.
 
-## Langkah M2.4 — benchmark dan streaming selesai, siap review/push
+## Langkah M2.4 — benchmark dan streaming selesai, sudah di-commit
 
 - generate_stream menghasilkan event teks/usage/timing, tanpa dependency baru.
   Parser SSE memvalidasi DONE, respons invalid, batas ukuran, dan metadata.
@@ -91,7 +92,35 @@ Commit lokal: `42f119b`; pengguna mengonfirmasi push. Worktree bersih sebelum M2
 
 Target Milestone 2 tercapai: runtime/model lokal, prompt/response, streaming,
 serta baseline ukuran/load/RAM/TTFT/tokens per second terukur. Kualitas model
-belum dievaluasi; Qwen3-0.6B tetap model smoke test. Jangan mulai M3 otomatis.
+belum dievaluasi; Qwen3-0.6B tetap model smoke test.
+
+## Langkah M3.1 — UI chat dasar, siap review/push
+
+- ChatService di core mengelola satu pesan, event loading/generating/text, dan
+  cleanup engine. Tidak mengimpor Qt dan tidak menyimpan chat ke SQLite.
+- ChatWorker memakai QThread dan signal; engine dibuat/dipakai di worker.
+- UI: transcript plain text, input, Kirim/Enter, status, streaming, dan error.
+  Satu request aktif; input dibuka kembali ketika selesai atau gagal.
+- --runtime/--model CLI eksplisit; keduanya opsional tetapi harus diberikan
+  bersama untuk mengaktifkan chat. Model tidak di-hardcode ke desktop app.
+- Runtime dimuat/ditutup per pesan. Transcript sementara; setiap pesan dijawab
+  terpisah tanpa konteks sebelumnya. Close saat aktif menunggu worker selesai;
+  tombol cancel/pembatalan responsif belum ditambahkan.
+- **89 tests PASS**, build/diff check PASS; tidak ada dependency baru.
+- Test UI offscreen memakai fake service: streaming literal, pesan berulang,
+  error/input, dan close menunggu worker.
+- Pengguna menunjukkan respons model asli melalui UI untuk beberapa pesan;
+  respons menjadi sapaan Inggris berulang dan tidak mengikuti permintaan bahasa.
+  Streaming/responsivitas/close desktop belum dikonfirmasi. Bahasa default belum
+  ditetapkan pada prompt lama; kode/test meneruskan pesan terbaru ke engine.
+- Prompt dasar meminta jawaban langsung dan Bahasa Indonesia default dengan
+  bahasa lain jika diminta eksplisit. Pengguna menguji ulang model asli lewat
+  UI: pertanyaan bahasa dijawab dalam Bahasa Indonesia, dan pertanyaan nama
+  dijawab dengan identitas Benzie. Manual kirim/jawab beberapa pesan: PASS.
+- Ini dua contoh berhasil, bukan evaluasi kualitas menyeluruh. Bahasa Inggris,
+  streaming/responsivitas/close desktop belum dikonfirmasi eksplisit.
+- Perintah dan batas perilaku tercatat di docs/chat-ui.md. Langkah berikutnya
+  setelah review/push: pembatalan responsif dan penyempurnaan lifecycle M3.
 
 ## Sudah ditulis
 
@@ -164,7 +193,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Chat UI, history, model settings, launcher Applications,
+Chat UI terverifikasi manual dengan model asli, cancel responsif, history, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -172,7 +201,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M2.4: `menambah streaming dan benchmark model lokal`.
+Usulan pesan commit M3.1 setelah manual test lulus: `menghubungkan chat lokal ke tampilan desktop`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M2.4. Berhenti setelah langkah
+sendiri. Asisten belum menjalankan commit/push M3.1. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

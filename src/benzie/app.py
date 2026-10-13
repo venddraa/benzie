@@ -19,7 +19,12 @@ def main(argv: list[str] | None = None) -> int:
         default=default_data_directory(),
         help="direktori data lokal (default mengikuti XDG_DATA_HOME)",
     )
+    parser.add_argument("--runtime", type=Path, help="path binary llama-server lokal")
+    parser.add_argument("--model", type=Path, help="path model GGUF lokal")
+    parser.add_argument("--port", type=int, default=8081, help="port HTTP loopback runtime")
     args = parser.parse_args(argv)
+    if (args.runtime is None) != (args.model is None):
+        parser.error("--runtime dan --model harus diberikan bersama")
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     # Impor UI setelah parsing: --help dan core tidak membutuhkan Qt.
@@ -55,7 +60,16 @@ def main(argv: list[str] | None = None) -> int:
         message.exec()
         return 1
 
-    window = MainWindow(state)
+    chat_service = None
+    if args.model is not None:
+        from benzie.core.chat import ChatService
+        from benzie.inference.engine import LlamaServerEngine
+        from benzie.inference.server import ServerConfig
+
+        config = ServerConfig(args.runtime, args.model, port=args.port)
+        chat_service = ChatService(lambda: LlamaServerEngine(config))
+    window = MainWindow(state, chat_service=chat_service,
+                        model_name=args.model.name if args.model is not None else None)
     window.show()
     result = application.exec()
     logger.info("Aplikasi ditutup")

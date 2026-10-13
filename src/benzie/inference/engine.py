@@ -1,7 +1,7 @@
 """Adapter teks sinkron melalui HTTP loopback; tanpa proxy, redirect, atau cloud."""
 
 import http.client
-from collections.abc import Iterator
+from collections.abc import Generator
 import json
 import logging
 import math
@@ -24,7 +24,7 @@ class InferenceEngine(Protocol):
     def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
                  temperature: float = 0.7, timeout: float = 120) -> str: ...
     def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
-                        temperature: float = 0.7, timeout: float = 120) -> Iterator[GenerationEvent]: ...
+                        temperature: float = 0.7, timeout: float = 120) -> Generator[GenerationEvent, None, None]: ...
     def close(self) -> None: ...
 
 
@@ -148,7 +148,7 @@ class LlamaServerEngine:
         return content
 
     def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
-                        temperature: float = 0.7, timeout: float = 120) -> Iterator[GenerationEvent]:
+                        temperature: float = 0.7, timeout: float = 120) -> Generator[GenerationEvent, None, None]:
         """Iterator GenerationEvent; pemanggil harus close iterator bila berhenti dini.
 
         Early close/error menghentikan runtime. Iterasi sukses membiarkan model
