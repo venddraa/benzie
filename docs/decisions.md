@@ -92,3 +92,9 @@ aktivitas; status completed/cancelled/failed membedakan hasil parsial dari lengk
 Tidak menyimpan system prompt atau mengekstrak personal memory. Koneksi pendek
 per operasi menghindari berbagi koneksi SQLite lintas thread. Integrasi UI/core
 dan kebijakan konteks multi-turn dikerjakan pada checkpoint berikutnya.
+
+M4.2: input disimpan sebelum inference; hasil/status sesudah cleanup, keduanya
+di worker. New/open dinonaktifkan selama request untuk menjaga target history.
+Error storage mengunci send/history dan membatalkan auto-close; pengguna bisa
+menyalin teks yang belum tersimpan. Tidak menyimpan exception mentah ke database.
+Konteks multi-turn dipisahkan agar batas context dapat ditangani eksplisit.

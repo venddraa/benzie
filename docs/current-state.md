@@ -4,7 +4,27 @@ Terakhir diperbarui: 2026-10-14.
 
 Milestone aktif: **4 — history lokal**, per langkah kecil.
 
-## Checkpoint terbaru — M4.1
+## Checkpoint terbaru — M4.2
+
+- HistoryService/SavedRequest menghubungkan store dan inference tanpa Qt.
+  Input disimpan sebelum model mulai; hasil lengkap/parsial/status disimpan
+  setelah cleanup runtime, di worker. Gagal menyimpan input mencegah inference.
+- UI memiliki pilihan percakapan dan tombol Percakapan baru. Percakapan terakhir
+  aktif dibuka saat startup, termasuk tanpa model. New/open dinonaktifkan saat
+  request aktif. Riwayat tetap plain text.
+- Error penyimpanan mempertahankan transcript dan menghentikan pengiriman/
+  perpindahan percakapan; auto-close dibatalkan agar teks bisa disalin.
+- 131 tests PASS, termasuk restart/switch/lanjut, cancel/close, dan kegagalan
+  penyimpanan. Pengguna mengonfirmasi manual test aman dan menyetujui commit.
+- History belum dikirim ke model. Setiap pesan masih dijawab terpisah; batas
+  ini ditampilkan di UI. Konteks multi-turn adalah checkpoint berikutnya.
+- Tidak ada dependency baru. Pesan disimpan saat hasil request diketahui,
+  bukan setiap token: crash/power loss saat generation dapat meninggalkan
+  pesan user tanpa jawaban. Pemulihan generation aktif belum diimplementasikan.
+- Usulan commit: `menghubungkan riwayat percakapan ke tampilan chat`.
+  Commit disetujui pengguna; push tetap dijalankan pengguna sendiri.
+
+## Checkpoint sebelumnya — M4.1
 
 - M3.2 sudah di-commit (`1be56d3`). Pengguna menyatakan fitur aman; kualitas
   jawaban masih bermasalah (contoh definisi RAG salah). Qwen3-0.6B tetap smoke
@@ -233,7 +253,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Integrasi history ke UI/core, konteks multi-turn, model settings, launcher Applications,
+Konteks multi-turn, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -241,7 +261,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M4.1: `menambah penyimpanan riwayat percakapan lokal`.
+Pesan commit M4.2: `menghubungkan riwayat percakapan ke tampilan chat`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M4.1. Berhenti setelah langkah
+sendiri. Review M4.2 disetujui pengguna. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

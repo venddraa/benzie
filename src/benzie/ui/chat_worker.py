@@ -8,6 +8,7 @@ from PySide6.QtCore import QThread, Signal
 from benzie.core.chat import ChatService
 from benzie.inference.engine import InferenceCancelled, InferenceError
 from benzie.inference.server import RuntimeStartError
+from benzie.persistence.database import DatabaseError
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +18,12 @@ class ChatWorker(QThread):
     chunk = Signal(str)
     failed = Signal(str)
     cancelled = Signal()
+    storage_failed = Signal(str)
 
-    def __init__(self, service: ChatService, prompt: str, parent=None) -> None:
+    def __init__(self, service: ChatService, prompt: str, parent=None, *, history=None, conversation_id=None) -> None:
         super().__init__(parent)
-        self._request = service.new_request(prompt)
+        self._request = (history.new_request(prompt, conversation_id) if history is not None
+                         else service.new_request(prompt))
 
     def cancel(self) -> None:
         self._request.cancel()
@@ -35,6 +38,8 @@ class ChatWorker(QThread):
                         self.phase.emit(event.kind)
         except InferenceCancelled:
             self.cancelled.emit()
+        except DatabaseError as error:
+            self.storage_failed.emit(str(error))
         except (InferenceError, RuntimeStartError, ValueError) as error:
             self.failed.emit(str(error))
         except Exception as error:

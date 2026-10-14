@@ -8,7 +8,7 @@ Milestone implementasi berbeda dari nomor versi produk.
 | 1 | Python, window Widgets, inisialisasi SQLite, basic tests, docs | Selesai; sudah di-commit/push pengguna |
 | 2 | llama-server + satu model kecil, prompt/response, benchmark | Selesai; di-commit/push pengguna |
 | 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | Di-commit 1be56d3; pengguna menyatakan fitur aman |
-| 4 | New/open/continue conversation; persistence pesan | M4.1 store/migrasi: 123 tests PASS; integrasi UI/core berikutnya |
+| 4 | New/open/continue conversation; persistence pesan | M4.2 UI/history: 131 tests PASS, manual dikonfirmasi aman; konteks multi-turn berikutnya |
 | 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | Belum dimulai |
 
 V0.1 berhasil bila aplikasi dibuka dari desktop Fedora, model lokal dapat

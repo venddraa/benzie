@@ -28,14 +28,20 @@ aktivitas percakapan atomik. Timestamp UTC, pesan diurutkan ID, percakapan
 berdasarkan updated_at DESC lalu ID DESC. Status completed/cancelled/failed
 menandai hasil akhir; jawaban gagal/dibatalkan boleh kosong. Store mengharuskan
 database sudah diinisialisasi dan tidak membuat file pengganti bila hilang.
-UI/core chat belum memakai store pada M4.1; belum ada persistence chat desktop.
+Sejak M4.2, core/history.py membungkus request inference dengan penyimpanan input
+dan hasil/status di worker. UI memakai HistoryService untuk new/list/open;
+tidak menjalankan SQL. Pemilihan percakapan dikunci selama generation. Request
+menyimpan ID percakapan tetap. Hasil disimpan setelah cleanup engine. Kegagalan
+penyimpanan ditampilkan, transcript dipertahankan, auto-close dibatalkan dan
+kontrol history/send dinonaktifkan sampai aplikasi dibuka ulang.
 
 Default data mengikuti XDG_DATA_HOME, dengan fallback `~/.local/share/benzie`.
 `--data-dir` memungkinkan lokasi development/test terpisah. Resolusi lokasi
 sendiri tidak membuat direktori. File config JSON belum diperlukan saat ini.
 
 Logging hanya event lifecycle ke stderr, tanpa log file atau isi conversation.
-Transcript chat hanya berada dalam widget, belum disimpan ke SQLite.
+Transcript direkonstruksi dari SQLite ketika membuka percakapan; chunk aktif
+berada di widget sampai hasil akhir disimpan. Tidak ada autosave per token.
 
 Chat desktop memanggil core melalui worker. Adapter memakai HTTP loopback, tanpa cloud,
 shell, package manager, atau downloader.

@@ -2,12 +2,14 @@
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPlainTextEdit, QPushButton, QVBoxLayout, QWidget
 
 from benzie.core.chat import ChatService
 from benzie.core.startup import StartupState
 from benzie.ui.chat_worker import ChatWorker
 from benzie.inference.server import RuntimeStartError
+from benzie.core.history import HistoryService
+from benzie.persistence.database import DatabaseError
 
 
 class MainWindow(QMainWindow):
@@ -15,6 +17,9 @@ class MainWindow(QMainWindow):
                  model_name: str | None = None) -> None:
         super().__init__()
         self._service = chat_service
+        self._history = HistoryService(state.database_path, chat_service)
+        self._conversation_id = None
+        self._storage_failed = False
         self._worker: ChatWorker | None = None
         self._close_pending = False
         self._cancelling = False
@@ -32,13 +37,22 @@ class MainWindow(QMainWindow):
         title.setFont(font)
         layout.addWidget(title)
 
-        description = QLabel("Setiap pesan dijawab terpisah. Riwayat belum tersimpan.")
+        description = QLabel("Riwayat tersimpan lokal. Model belum menerima konteks pesan sebelumnya.")
         description.setWordWrap(True)
         layout.addWidget(description)
         model = QLabel(f"Model: {model_name}" if model_name else "Belum ada model dipilih.")
         model.setTextFormat(Qt.TextFormat.PlainText)
         model.setWordWrap(True)
         layout.addWidget(model)
+
+        history_row = QHBoxLayout()
+        self.conversation_picker = QComboBox()
+        self.new_button = QPushButton("Percakapan baru")
+        history_row.addWidget(self.conversation_picker, 1)
+        history_row.addWidget(self.new_button)
+        layout.addLayout(history_row)
+        self.new_button.clicked.connect(self._new_conversation)
+        self.conversation_picker.currentIndexChanged.connect(self._open_conversation)
 
         self.chat_history = QPlainTextEdit()
         self.chat_history.setReadOnly(True)
@@ -63,31 +77,106 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(content)
         self.statusBar().showMessage(f"SQLite siap · versi skema {state.schema_version}")
+        try:
+            self._refresh_conversations()
+            if self.conversation_picker.count():
+                self._open_conversation()
+        except DatabaseError as error:
+            self._storage_error(str(error))
+
+    def _refresh_conversations(self):
+        conversations = self._history.conversations()
+        self.conversation_picker.blockSignals(True)
+        try:
+            self.conversation_picker.clear()
+            for conversation in conversations:
+                self.conversation_picker.addItem(
+                    f"{conversation.title} · #{conversation.id}", conversation.id,
+                )
+            if self._conversation_id is not None:
+                self.conversation_picker.setCurrentIndex(
+                    self.conversation_picker.findData(self._conversation_id)
+                )
+        finally:
+            self.conversation_picker.blockSignals(False)
+
+    @Slot()
+    def _new_conversation(self):
+        if self._worker is not None or self._storage_failed:
+            return
+        try:
+            conversation = self._history.new_conversation()
+            self._conversation_id = conversation.id
+            self._refresh_conversations()
+            self.chat_history.clear()
+            self.message_input.clear()
+        except DatabaseError as error:
+            self._storage_error(str(error))
+
+    @Slot()
+    def _open_conversation(self):
+        if self._worker is not None or self._storage_failed:
+            return
+        selected = self.conversation_picker.currentData()
+        if selected is None:
+            return
+        try:
+            messages = self._history.messages(selected)
+        except DatabaseError as error:
+            self._storage_error(str(error))
+            return
+        self._conversation_id = selected
+        self.message_input.clear()
+        self.chat_history.clear()
+        for message in messages:
+            label = "Anda" if message.role == "user" else "Benzie"
+            marker = {"completed": "", "cancelled": "\n[Dibatalkan]", "failed": "\n[Gagal]"}[message.status]
+            self.chat_history.appendPlainText(f"{label}\n{message.content}{marker}\n")
+
+    @Slot(str)
+    def _storage_error(self, message):
+        self._storage_failed = True
+        self._close_pending = False
+        self._error("History gagal disimpan/dibaca. " + message)
+        self.statusBar().showMessage("History bermasalah; salin teks yang diperlukan sebelum menutup aplikasi.")
+        self.message_input.setEnabled(False)
+        self.new_button.setEnabled(False)
+        self.conversation_picker.setEnabled(False)
+        self._update_send()
 
     @Slot()
     def _update_send(self) -> None:
         self.send_button.setEnabled(
             self._service is not None and self._worker is None
             and bool(self.message_input.text().strip()) and not self._close_pending
+            and not self._storage_failed
         )
 
     @Slot()
     def _send(self) -> None:
         prompt = self.message_input.text().strip()
-        if self._service is None or self._worker is not None or not prompt or self._close_pending:
+        if self._service is None or self._worker is not None or not prompt or self._close_pending or self._storage_failed:
             return
+        if self._conversation_id is None:
+            self._new_conversation()
+            if self._storage_failed:
+                return
         self.chat_history.appendPlainText(f"Anda\n{prompt}\n\nBenzie\n")
         self.message_input.clear()
         self.message_input.setEnabled(False)
-        worker = ChatWorker(self._service, prompt, self)
+        worker = ChatWorker(self._service, prompt, self, history=self._history,
+                            conversation_id=self._conversation_id)
         self._worker = worker
         worker.phase.connect(self._phase)
         worker.chunk.connect(self._chunk)
         worker.failed.connect(self._error)
+        worker.storage_failed.connect(self._storage_error)
         worker.cancelled.connect(self._cancelled)
         worker.finished.connect(self._finished)
         self._update_send()
         self.cancel_button.setEnabled(True)
+        self.new_button.setEnabled(False)
+        self.conversation_picker.setEnabled(False)
         worker.start()
 
     @Slot()
@@ -136,6 +225,15 @@ class MainWindow(QMainWindow):
         self.chat_history.appendPlainText("")
         self._cancelling = False
         self.cancel_button.setEnabled(False)
+        if self._storage_failed:
+            return
+        try:
+            self._refresh_conversations()
+        except DatabaseError as error:
+            self._storage_error(str(error))
+            return
+        self.new_button.setEnabled(True)
+        self.conversation_picker.setEnabled(True)
         if self._close_pending:
             self.close()
             return

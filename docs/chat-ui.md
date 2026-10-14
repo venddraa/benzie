@@ -70,3 +70,14 @@ membuktikan kill/reap; fake engine/UI membuktikan cancel/loading/generation,
 resend, dan close aktif. Manual model asli menunggu terminal pengguna.
 Core membatasi deadline load 30 detik dan timeout I/O generation 30 detik;
 timeout I/O bukan deadline keseluruhan jika server terus mengirim chunk.
+
+## Manual test M4.2
+
+Gunakan data-dir yang sama saat restart. Kirim pesan, buat percakapan baru,
+kirim pesan berbeda, lalu pindah kembali lewat pilihan percakapan. Tutup dan
+buka ulang aplikasi: kedua history harus tersedia. Lanjutkan percakapan lama:
+pesan baru harus tersimpan di percakapan tersebut. Model masih menerima hanya
+pesan terbaru, belum konteks history. Coba Batal dan tutup saat generation;
+hasil parsial/status harus tersedia setelah restart. Jalankan tanpa --runtime
+dan --model untuk membaca history tanpa memuat model. Jangan gunakan /tmp
+untuk history penting karena bisa dibersihkan sistem.
