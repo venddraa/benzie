@@ -2,7 +2,26 @@
 
 Terakhir diperbarui: 2026-10-14.
 
-Milestone aktif: **3 — menghubungkan inference ke UI**, per langkah kecil.
+Milestone aktif: **4 — history lokal**, per langkah kecil.
+
+## Checkpoint terbaru — M4.1
+
+- M3.2 sudah di-commit (`1be56d3`). Pengguna menyatakan fitur aman; kualitas
+  jawaban masih bermasalah (contoh definisi RAG salah). Qwen3-0.6B tetap smoke
+  test; penyebab kualitas belum diisolasi melalui benchmark kandidat.
+- Skema SQLite 2: conversations/messages, foreign key, indeks urutan pesan.
+  Migrasi dari skema 1 transaksional, tidak menghapus data yang sudah ada.
+- ConversationStore tanpa Qt: buat/ambil/daftar percakapan, tambah/daftar pesan.
+  Pesan memiliki status completed/cancelled/failed; jawaban parsial dibedakan.
+  Urutan pesan memakai ID, bukan timestamp; update aktivitas dan insert atomik.
+- **123 tests PASS**, termasuk reopen, isolasi percakapan, teks literal,
+  rollback migrasi/insert, foreign key, dan smoke UI offscreen.
+- UI belum memakai store: chat saat ini tetap sementara dan tiap pesan
+  dijawab terpisah. Belum ada konteks multi-turn atau personal memory.
+- Langkah berikutnya setelah review: hubungkan new/open/save history ke UI/core.
+- Usulan commit: `menambah penyimpanan riwayat percakapan lokal`.
+  Belum di-commit/push oleh asisten. Catatan di bawah adalah riwayat checkpoint.
+
 Milestone 2 selesai dan di-commit (`4d7b2e1`); worktree bersih sebelum M3.1.
 Milestone 1 selesai dan sudah di-commit (`6d9c5c9`); pengguna mengonfirmasi push.
 Window desktop, resize, dan tutup–buka ulang telah dikonfirmasi pengguna.
@@ -124,7 +143,7 @@ Commit lokal: `ea1dc7d`; worktree bersih sebelum memulai M3.2.
 - Perintah dan batas perilaku tercatat di docs/chat-ui.md. Langkah berikutnya
   setelah review/push: pembatalan responsif dan penyempurnaan lifecycle M3.
 
-## Langkah M3.2 — cancel/lifecycle, menunggu manual test
+## Langkah M3.2 — cancel/lifecycle, sudah di-commit
 
 - Tombol Batal aktif saat request berlangsung. Jawaban parsial dipertahankan,
   chunk terlambat diabaikan setelah pembatalan, dan transcript menampilkan
@@ -214,7 +233,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Cancel/close terverifikasi manual dengan model asli, history, model settings, launcher Applications,
+Integrasi history ke UI/core, konteks multi-turn, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -222,7 +241,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M3.2 setelah manual test lulus: `menambah pembatalan chat dan penutupan aplikasi`.
+Usulan pesan commit M4.1: `menambah penyimpanan riwayat percakapan lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M3.2. Berhenti setelah langkah
+sendiri. Asisten belum menjalankan commit/push M4.1. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

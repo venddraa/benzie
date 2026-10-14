@@ -78,3 +78,31 @@ def test_initialization_leaves_no_write_lock(tmp_path):
     with closing(sqlite3.connect(path, timeout=0)) as connection:
         connection.execute("BEGIN EXCLUSIVE")
         connection.rollback()
+
+
+def test_migrate_schema_one_preserves_existing_data(tmp_path):
+    path = tmp_path / "old.sqlite3"
+    with closing(sqlite3.connect(path)) as connection, connection:
+        connection.execute("PRAGMA user_version = 1")
+        connection.execute("CREATE TABLE sentinel(value TEXT)")
+        connection.execute("INSERT INTO sentinel VALUES ('keep')")
+    assert initialize_database(path) == 2
+    assert initialize_database(path) == 2
+    with closing(sqlite3.connect(path)) as connection:
+        assert connection.execute("SELECT value FROM sentinel").fetchone() == ("keep",)
+        assert connection.execute("SELECT count(*) FROM conversations").fetchone() == (0,)
+        assert connection.execute("SELECT count(*) FROM messages").fetchone() == (0,)
+
+
+def test_migration_failure_rolls_back_schema_and_version(tmp_path):
+    path = tmp_path / "conflicting.sqlite3"
+    with closing(sqlite3.connect(path)) as connection:
+        connection.execute("PRAGMA user_version = 1")
+        connection.execute("CREATE TABLE messages(value TEXT)")
+    with pytest.raises(DatabaseError):
+        initialize_database(path)
+    with closing(sqlite3.connect(path)) as connection:
+        assert connection.execute("PRAGMA user_version").fetchone() == (1,)
+        assert connection.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall() == [("messages",)]

@@ -7,8 +7,8 @@ Milestone implementasi berbeda dari nomor versi produk.
 | 0 | Audit tanpa perubahan sistem | Selesai; fondasi disetujui |
 | 1 | Python, window Widgets, inisialisasi SQLite, basic tests, docs | Selesai; sudah di-commit/push pengguna |
 | 2 | llama-server + satu model kecil, prompt/response, benchmark | Selesai; di-commit/push pengguna |
-| 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | M3.1 di-commit; M3.2 103 tests PASS, menunggu manual cancel/close |
-| 4 | New/open/continue conversation; persistence pesan | Belum dimulai |
+| 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | Di-commit 1be56d3; pengguna menyatakan fitur aman |
+| 4 | New/open/continue conversation; persistence pesan | M4.1 store/migrasi: 123 tests PASS; integrasi UI/core berikutnya |
 | 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | Belum dimulai |
 
 V0.1 berhasil bila aplikasi dibuka dari desktop Fedora, model lokal dapat
@@ -21,6 +21,9 @@ diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.
 
 Semua milestone membutuhkan test relevan dan review pengguna. Commit/push
 menunggu persetujuan; jangan otomatis melanjutkan milestone berikutnya.
+
+M4 dipecah: store/migrasi → new/open/save history di desktop → konteks percakapan
+ke inference dengan batas context. M4.1 belum menyimpan percakapan dari UI.
 
 Arah setelah V0.1 (belum disepakati sebagai pekerjaan aktif): penyempurnaan
 conversation management, memory, semantic retrieval, Recall/file search, RAG,

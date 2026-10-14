@@ -7,7 +7,7 @@ import sys
 import pytest
 
 from benzie.core.startup import initialize_application
-from benzie.persistence.database import DatabaseError
+from benzie.persistence.database import DatabaseError, SCHEMA_VERSION
 
 
 def test_core_initializes_database_in_selected_directory(tmp_path):
@@ -15,7 +15,7 @@ def test_core_initializes_database_in_selected_directory(tmp_path):
 
     assert state.database_path == tmp_path / "local data" / "benzie.sqlite3"
     assert state.database_path.is_file()
-    assert state.schema_version == 1
+    assert state.schema_version == SCHEMA_VERSION
     assert initialize_application(tmp_path / "local data") == state
 
 

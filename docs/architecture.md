@@ -1,6 +1,6 @@
 # Arsitektur saat ini
 
-Implementasi desktop/core/inference sampai langkah M3.1.
+Implementasi desktop/core/inference M3.2 dan penyimpanan history M4.1.
 
 ```text
 app.py (entry point)
@@ -16,11 +16,19 @@ menampilkan window. Kegagalan startup ditampilkan melalui dialog dan exit code 1
 Core tidak mengimpor PySide6. `StartupState` hanya membawa path database dan
 versi skema ke UI. UI tidak membuka koneksi database.
 
-SQLite versi skema 1 hanya memiliki penanda `PRAGMA user_version`; belum ada
-tabel produk. Inisialisasi dilakukan dalam transaksi, koneksi ditutup setelah
-selesai. Database versi lebih baru ditolak tanpa downgrade. SQLite invalid atau
-lokasi yang tidak dapat digunakan menghasilkan error yang bisa dijelaskan UI.
-Tabel dan repository percakapan baru diperlukan pada Milestone 4.
+SQLite versi skema 2 memiliki tabel conversations (id/title/created_at/updated_at)
+dan messages (id/conversation_id/role/content/status/created_at). Migrasi dari
+skema 1 dan penanda user_version berada dalam satu transaksi. Versi lebih baru
+ditolak tanpa downgrade. Koneksi ditutup setelah operasi.
+
+ConversationStore di persistence/conversations.py menyediakan CRUD terbatas:
+create/get/list conversation dan append/list message, tanpa edit/delete dulu.
+Satu koneksi per operasi dengan foreign_keys aktif; insert pesan dan update
+aktivitas percakapan atomik. Timestamp UTC, pesan diurutkan ID, percakapan
+berdasarkan updated_at DESC lalu ID DESC. Status completed/cancelled/failed
+menandai hasil akhir; jawaban gagal/dibatalkan boleh kosong. Store mengharuskan
+database sudah diinisialisasi dan tidak membuat file pengganti bila hilang.
+UI/core chat belum memakai store pada M4.1; belum ada persistence chat desktop.
 
 Default data mengikuti XDG_DATA_HOME, dengan fallback `~/.local/share/benzie`.
 `--data-dir` memungkinkan lokasi development/test terpisah. Resolusi lokasi

@@ -82,3 +82,13 @@ cleanup/reap. Tidak memakai QThread.terminate atau menunggu proses dari UI.
 Cancel saat startup disinkronkan lewat handle per request agar tidak hilang
 sebelum spawn. Runtime persisten dan cancellation tanpa unload dievaluasi nanti
 jika ada kebutuhan/benchmark, tidak ditambahkan pada langkah ini.
+
+## 007 — History lokal, skema 2 (2026-10-14)
+
+Gunakan sqlite3 standard library dan ConversationStore tanpa ORM/dependency baru.
+Migrasi transaksional menambah conversations/messages; foreign key mencegah pesan
+yatim. ID integer mengurutkan pesan meski timestamp sama. Timestamp UTC merekam
+aktivitas; status completed/cancelled/failed membedakan hasil parsial dari lengkap.
+Tidak menyimpan system prompt atau mengekstrak personal memory. Koneksi pendek
+per operasi menghindari berbagi koneksi SQLite lintas thread. Integrasi UI/core
+dan kebijakan konteks multi-turn dikerjakan pada checkpoint berikutnya.
