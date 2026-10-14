@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QMainWindow, QPlai
 from benzie.core.chat import ChatService
 from benzie.core.startup import StartupState
 from benzie.ui.chat_worker import ChatWorker
+from benzie.inference.server import RuntimeStartError
 
 
 class MainWindow(QMainWindow):
@@ -16,6 +17,7 @@ class MainWindow(QMainWindow):
         self._service = chat_service
         self._worker: ChatWorker | None = None
         self._close_pending = False
+        self._cancelling = False
         self.setWindowTitle("Benzie")
         self.resize(720, 480)
 
@@ -46,10 +48,14 @@ class MainWindow(QMainWindow):
         self.message_input = QLineEdit()
         self.message_input.setPlaceholderText("Tulis pesan…")
         self.send_button = QPushButton("Kirim")
+        self.cancel_button = QPushButton("Batal")
+        self.cancel_button.setEnabled(False)
         row.addWidget(self.message_input, 1)
         row.addWidget(self.send_button)
+        row.addWidget(self.cancel_button)
         layout.addLayout(row)
         self.send_button.clicked.connect(self._send)
+        self.cancel_button.clicked.connect(self._cancel)
         self.message_input.returnPressed.connect(self._send)
         self.message_input.textChanged.connect(self._update_send)
         self.message_input.setEnabled(self._service is not None)
@@ -78,24 +84,46 @@ class MainWindow(QMainWindow):
         worker.phase.connect(self._phase)
         worker.chunk.connect(self._chunk)
         worker.failed.connect(self._error)
+        worker.cancelled.connect(self._cancelled)
         worker.finished.connect(self._finished)
         self._update_send()
+        self.cancel_button.setEnabled(True)
         worker.start()
+
+    @Slot()
+    def _cancel(self) -> None:
+        if self._worker is None or self._cancelling:
+            return
+        self._cancelling = True
+        self.cancel_button.setEnabled(False)
+        self.statusBar().showMessage("Membatalkan…")
+        try:
+            self._worker.cancel()
+        except RuntimeStartError as error:
+            self._error(str(error))
+            self._cancelling = False
+            self.cancel_button.setEnabled(not self._close_pending)
+
+    @Slot()
+    def _cancelled(self) -> None:
+        self.chat_history.appendPlainText("[Dibatalkan]")
 
     @Slot(str)
     def _phase(self, phase: str) -> None:
-        if not self._close_pending:
+        if not self._close_pending and not self._cancelling:
             self.statusBar().showMessage("Memuat model…" if phase == "loading" else "Menyusun jawaban…")
 
     @Slot(str)
     def _chunk(self, text: str) -> None:
+        if self._cancelling:
+            return
         self.chat_history.moveCursor(QTextCursor.MoveOperation.End)
         self.chat_history.insertPlainText(text)
         self.chat_history.ensureCursorVisible()
 
     @Slot(str)
     def _error(self, message: str) -> None:
-        self._chunk(f"\n[Kesalahan: {message}]")
+        self.chat_history.appendPlainText(f"[Kesalahan: {message}]")
 
     @Slot()
     def _finished(self) -> None:
@@ -106,6 +134,8 @@ class MainWindow(QMainWindow):
             worker.wait()
             worker.deleteLater()
         self.chat_history.appendPlainText("")
+        self._cancelling = False
+        self.cancel_button.setEnabled(False)
         if self._close_pending:
             self.close()
             return
@@ -117,7 +147,8 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:
         if self._worker is not None:
             self._close_pending = True
-            self.statusBar().showMessage("Menunggu proses selesai sebelum menutup…")
+            self._cancel()
+            self.statusBar().showMessage("Membatalkan proses sebelum menutup…")
             self._update_send()
             event.ignore()
             return

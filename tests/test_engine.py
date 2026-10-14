@@ -5,7 +5,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from benzie.inference.engine import InferenceError, LlamaServerEngine
+from benzie.inference.engine import InferenceCancelled, InferenceError, LlamaServerEngine
 from benzie.inference.server import LocalServerProcess, ServerConfig
 from benzie.inference.stream import GenerationEvent
 
@@ -229,3 +229,57 @@ def test_stream_failure_closes_connection_and_runtime(engine, streaming_transpor
         list(client.generate_stream("Halo", system_prompt="Benzie"))
     connection.close.assert_called_once()
     process.stop.assert_called_once()
+
+
+def test_cancel_before_start_never_launches_runtime(engine):
+    client, process = engine
+    client.cancel()
+    with pytest.raises(InferenceCancelled):
+        client.start()
+    process.start.assert_not_called()
+    process.request_stop.assert_called_once()
+
+
+def test_cancel_during_health_check_closes_runtime(engine):
+    client, process = engine
+
+    def health(*args, **kwargs):
+        client.cancel()
+        return 200, {"status": "ok"}
+
+    client._request.side_effect = health
+    with pytest.raises(InferenceCancelled):
+        client.start()
+    process.stop.assert_called_once()
+
+
+def test_cancel_during_metadata_io_is_not_reported_as_connection_error(engine):
+    client, process = engine
+
+    def request(method, path, **kwargs):
+        if path == "/health":
+            return 200, {"status": "ok"}
+        client.cancel()
+        raise InferenceError("socket disconnected")
+
+    client._request.side_effect = request
+    with pytest.raises(InferenceCancelled):
+        client.start()
+    process.stop.assert_called_once()
+
+
+def test_cancel_during_blocked_stream_is_reported_as_cancel(engine, streaming_transport):
+    client, process = engine
+    connection, _ = streaming_transport
+    client.start()
+
+    def disconnected():
+        client.cancel()
+        raise OSError("socket closed")
+
+    connection.getresponse.side_effect = disconnected
+    with pytest.raises(InferenceCancelled):
+        list(client.generate_stream("Halo", system_prompt="Benzie"))
+    process.request_stop.assert_called_once()
+    process.stop.assert_called_once()
+    connection.close.assert_called_once()

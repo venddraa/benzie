@@ -9,8 +9,9 @@ pytest.importorskip("PySide6", reason="PySide6 diperlukan untuk smoke test windo
 from PySide6.QtWidgets import QApplication
 
 from benzie.core.startup import initialize_application
-from benzie.core.chat import ChatEvent
+from benzie.core.chat import ChatService
 from benzie.inference.engine import InferenceError
+from benzie.inference.stream import GenerationEvent
 from benzie.ui.main_window import MainWindow
 
 
@@ -44,14 +45,14 @@ def test_chat_streams_literal_text_and_accepts_next_message(monkeypatch, tmp_pat
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication(["benzie-test"])
 
-    class FakeService:
-        def reply(self, prompt):
-            yield ChatEvent("loading")
-            yield ChatEvent("generating")
-            yield ChatEvent("text", "<b>Ha")
-            yield ChatEvent("text", "lo</b>")
+    class FakeEngine:
+        def start(self, **options): pass
+        def close(self): pass
+        def generate_stream(self, prompt, **options):
+            yield GenerationEvent("<b>Ha")
+            yield GenerationEvent("lo</b>")
 
-    window = MainWindow(initialize_application(tmp_path), chat_service=FakeService(), model_name="test.gguf")
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(FakeEngine), model_name="test.gguf")
     window.show()
     try:
         assert not window.send_button.isEnabled()
@@ -75,12 +76,11 @@ def test_error_restores_input(monkeypatch, tmp_path):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication(["benzie-test"])
 
-    class FailingService:
-        def reply(self, prompt):
-            raise InferenceError("Model lokal gagal dimuat.")
-            yield  # API generator yang gagal sebelum event pertama.
+    class FailingEngine:
+        def start(self, **options): raise InferenceError("Model lokal gagal dimuat.")
+        def close(self): pass
 
-    window = MainWindow(initialize_application(tmp_path), chat_service=FailingService())
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(FailingEngine))
     window.show()
     try:
         window.message_input.setText("Halo")
@@ -92,29 +92,78 @@ def test_error_restores_input(monkeypatch, tmp_path):
         window.close()
 
 
-def test_close_waits_for_worker_without_destroying_running_thread(monkeypatch, tmp_path):
+def test_close_cancels_worker_before_destroying_window(monkeypatch, tmp_path):
     monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication(["benzie-test"])
     release = threading.Event()
+    started = threading.Event()
 
-    class SlowService:
-        def reply(self, prompt):
-            yield ChatEvent("loading")
+    class SlowEngine:
+        def start(self, **options):
+            started.set()
             release.wait(timeout=2)
-            yield ChatEvent("text", "Selesai")
+        def cancel(self): release.set()
+        def close(self): pass
+        def generate_stream(self, prompt, **options): yield GenerationEvent("Selesai")
 
-    window = MainWindow(initialize_application(tmp_path), chat_service=SlowService())
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(SlowEngine))
     window.show()
     try:
         window.message_input.setText("Halo")
         window.send_button.click()
+        wait_for(app, started.is_set)
         window.close()
-        app.processEvents()
-        assert window.isVisible()
         assert window._close_pending
-        release.set()
         wait_for(app, lambda: not window.isVisible())
+        assert release.is_set()
         assert window._worker is None
+    finally:
+        release.set()
+        wait_for(app, lambda: window._worker is None)
+        window.close()
+
+
+def test_cancel_preserves_partial_text_and_allows_next_request(monkeypatch, tmp_path):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication(["benzie-test"])
+    release = threading.Event()
+    blocked = threading.Event()
+    engines = []
+
+    class Engine:
+        def __init__(self):
+            self.closed = False
+            engines.append(self)
+        def start(self, **options): pass
+        def generate_stream(self, prompt, **options):
+            yield GenerationEvent("Awal")
+            if len(engines) == 1:
+                blocked.set()
+                release.wait(timeout=2)
+                yield GenerationEvent("Teks terlambat")
+            else:
+                yield GenerationEvent(" pesan kedua")
+        def cancel(self): release.set()
+        def close(self): self.closed = True
+
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(Engine))
+    window.show()
+    try:
+        window.message_input.setText("Pertama")
+        window.send_button.click()
+        wait_for(app, lambda: blocked.is_set() and "Awal" in window.chat_history.toPlainText())
+        assert window.cancel_button.isEnabled()
+        window.cancel_button.click()
+        assert not window.cancel_button.isEnabled()
+        wait_for(app, lambda: window._worker is None)
+        assert "[Dibatalkan]" in window.chat_history.toPlainText()
+        assert "Teks terlambat" not in window.chat_history.toPlainText()
+        assert engines[0].closed
+        window.message_input.setText("Kedua")
+        window.send_button.click()
+        wait_for(app, lambda: window._worker is None)
+        assert "pesan kedua" in window.chat_history.toPlainText()
+        assert engines[1].closed
     finally:
         release.set()
         wait_for(app, lambda: window._worker is None)

@@ -1,5 +1,6 @@
 from dataclasses import replace
 import subprocess
+import sys
 from unittest.mock import Mock
 
 import pytest
@@ -130,3 +131,42 @@ def test_failed_stop_can_be_retried(config, spawn):
     process.wait.side_effect = None
     server.stop()
     assert not server.is_running
+
+
+def test_request_stop_signals_owned_process_without_waiting(config, spawn):
+    _, process = spawn
+    server = LocalServerProcess(config)
+    server.request_stop()
+    process.kill.assert_not_called()
+    server.start()
+    server.request_stop()
+    process.kill.assert_called_once()
+    process.wait.assert_not_called()
+    process.poll.return_value = -9
+    server.stop()
+    process.wait.assert_called_once()
+
+
+def test_request_stop_handles_process_exit_race(config, spawn):
+    _, process = spawn
+    server = LocalServerProcess(config)
+    server.start()
+    process.kill.side_effect = ProcessLookupError()
+    server.request_stop()
+    process.poll.return_value = 0
+    server.stop()
+
+
+def test_cancel_reaps_real_owned_child_without_network(config, monkeypatch):
+    # Child nyata untuk verifikasi OS kill/wait; bukan inference/model palsu.
+    monkeypatch.setattr(ServerConfig, "command", lambda self: [sys.executable, "-c", "import time; time.sleep(30)"])
+    server = LocalServerProcess(config)
+    try:
+        server.start()
+        process = server._process
+        server.request_stop()
+        server.stop()
+        assert process.poll() is not None
+        assert server.process_id is None
+    finally:
+        server.stop()

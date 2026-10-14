@@ -1,6 +1,6 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-13.
+Terakhir diperbarui: 2026-10-14.
 
 Milestone aktif: **3 — menghubungkan inference ke UI**, per langkah kecil.
 Milestone 2 selesai dan di-commit (`4d7b2e1`); worktree bersih sebelum M3.1.
@@ -94,7 +94,9 @@ Target Milestone 2 tercapai: runtime/model lokal, prompt/response, streaming,
 serta baseline ukuran/load/RAM/TTFT/tokens per second terukur. Kualitas model
 belum dievaluasi; Qwen3-0.6B tetap model smoke test.
 
-## Langkah M3.1 — UI chat dasar, siap review/push
+## Langkah M3.1 — UI chat dasar, sudah di-commit
+
+Commit lokal: `ea1dc7d`; worktree bersih sebelum memulai M3.2.
 
 - ChatService di core mengelola satu pesan, event loading/generating/text, dan
   cleanup engine. Tidak mengimpor Qt dan tidak menyimpan chat ke SQLite.
@@ -121,6 +123,25 @@ belum dievaluasi; Qwen3-0.6B tetap model smoke test.
   streaming/responsivitas/close desktop belum dikonfirmasi eksplisit.
 - Perintah dan batas perilaku tercatat di docs/chat-ui.md. Langkah berikutnya
   setelah review/push: pembatalan responsif dan penyempurnaan lifecycle M3.
+
+## Langkah M3.2 — cancel/lifecycle, menunggu manual test
+
+- Tombol Batal aktif saat request berlangsung. Jawaban parsial dipertahankan,
+  chunk terlambat diabaikan setelah pembatalan, dan transcript menampilkan
+  [Dibatalkan]. Input kembali aktif setelah worker/cleanup selesai.
+- ChatRequest per pesan memiliki flag dan lock sehingga cancel sebelum worker
+  mulai tidak hilang. Engine tetap dibuat/dipakai/dibersihkan di worker.
+- cancel engine hanya operasi thread-safe flag/sinyal kill pada child runtime
+  sendiri. Koneksi HTTP terputus, lalu worker close/reap. Tidak membunuh thread
+  Qt/Python, tidak menunggu proses dari UI, dan tidak memberi shell ke model.
+- Close window saat request aktif meminta cancel, menunggu finished/cleanup
+  secara asinkron, kemudian menutup. Request berikutnya memakai engine baru.
+- **103 tests PASS**, build/diff check PASS. Tes mencakup cancel sebelum start,
+  loading/generation/I/O, event terlambat, resend, close, serta kill/reap child
+  nyata tanpa network. Test model/UI asli masih perlu terminal pengguna.
+- Tidak ada dependency baru, perubahan model, konteks percakapan, atau history.
+- Manual test: cancel saat loading, cancel saat jawaban panjang, kirim ulang,
+  dan close window saat aktif. Perintah/checklist ada di docs/chat-ui.md.
 
 ## Sudah ditulis
 
@@ -193,7 +214,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Chat UI terverifikasi manual dengan model asli, cancel responsif, history, model settings, launcher Applications,
+Cancel/close terverifikasi manual dengan model asli, history, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -201,7 +222,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M3.1 setelah manual test lulus: `menghubungkan chat lokal ke tampilan desktop`.
+Usulan pesan commit M3.2 setelah manual test lulus: `menambah pembatalan chat dan penutupan aplikasi`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Asisten belum menjalankan commit/push M3.1. Berhenti setelah langkah
+sendiri. Asisten belum menjalankan commit/push M3.2. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

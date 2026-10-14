@@ -75,3 +75,10 @@ menggunakan Bahasa Indonesia secara default; permintaan bahasa lain tetap
 diikuti. Ini instruksi dasar, bukan personality kompleks. Setelah perubahan,
 pengguna mengonfirmasi dua respons terkait bahasa dan nama melalui transcript
 UI. Evaluasi kualitas menyeluruh belum dilakukan; Qwen3-0.6B tetap smoke test.
+
+M3.2, 2026-10-14: cancel menghentikan child runtime milik request karena engine
+masih dimuat/ditutup per pesan. UI hanya mengirim flag/sinyal; worker melakukan
+cleanup/reap. Tidak memakai QThread.terminate atau menunggu proses dari UI.
+Cancel saat startup disinkronkan lewat handle per request agar tidak hilang
+sebelum spawn. Runtime persisten dan cancellation tanpa unload dievaluasi nanti
+jika ada kebutuhan/benchmark, tidak ditambahkan pada langkah ini.

@@ -44,7 +44,9 @@ fitur lain. API key acak engine ditetapkan melalui environment child. stderr
 dibaca thread daemon; hanya hint generik disimpan, tanpa baris mentah. stdout
 dibuang. Tidak ada prompt/jawaban/API key yang dicatat ke log.
 
-Pemanggil wajib stop dan memakai thread pemilik yang sama. Shutdown menunggu
+Start/stop tetap pada thread pemilik; request_stop boleh lintas thread dan hanya
+mengirim kill pada child sendiri di bawah lock, tanpa wait. Worker melakukan
+reap. Shutdown normal menunggu
 3 detik sebelum kill lalu menunggu maksimal 3 detik lagi. Handle dipertahankan
 jika cleanup gagal. Proses hidup tidak dianggap model siap.
 
@@ -53,7 +55,8 @@ LlamaServerEngine. Startup memakai deadline, /health, dan /v1/models dengan API
 key untuk verifikasi server. HTTPConnection hanya menuju 127.0.0.1 tanpa proxy
 atau redirect. Model ID dibaca dari runtime. generate menerima teks/system
 prompt, mengambil message.content, serta menutup proses saat error/timeout I/O.
-API dipakai berurutan dari satu pemanggil/thread, belum thread-safe.
+Start/generate/close dipakai berurutan pada satu thread pemilik. Satu pengecualian
+eksplisit: cancel boleh lintas thread untuk flag Event dan sinyal ke child.
 
 System prompt dasar di core/prompts.py tidak mengklaim file/tools/memory.
 Smoke script mengirim satu prompt sintetis dan selalu menutup engine.
@@ -62,15 +65,21 @@ serta statistik token/timing. EOF tanpa DONE ditolak. Error dan early close
 menghentikan proses; stream sukses tetap memuat model. Pemanggil harus menutup
 iterator jika berhenti dini. History pesan sebelumnya belum masuk prompt.
 
-`core/chat.py` menyediakan ChatService, tanpa Qt: membuat engine di thread
-pemanggil, menyampaikan event loading/generating/text, dan memastikan cleanup.
+`core/chat.py` menyediakan ChatService dan ChatRequest, tanpa Qt. Request dibuat
+sebelum worker start, menyimpan flag cancel serta handle engine di bawah lock.
+Factory hanya konstruksi tanpa I/O. Engine dibuat/dipakai/close di worker;
+core menyampaikan event loading/generating/text dan memastikan cleanup.
 Runtime dimuat/ditutup per pesan pada baseline M3.1. `ui/chat_worker.py` hanya
 menjalankan core di QThread dan mengirim signal ke window. Widget memodifikasi
 transcript dengan plain text agar teks pengguna/model tidak dianggap HTML.
 Satu request aktif; kontrol input dinonaktifkan sampai selesai/error.
 
-Close saat worker aktif ditunda sampai selesai dan cleanup; tidak memakai
-QThread.terminate. Cancel responsif belum tersedia. app.py menerima pasangan
+Tombol Batal meminta cancellation, mengabaikan chunk yang sudah antre setelah
+cancel, dan mempertahankan jawaban parsial. Close aktif meminta cancellation,
+menunggu finished/cleanup asinkron, lalu menutup; tidak memakai QThread.terminate.
+Pembatalan sebelum spawn dicek kembali setelah spawn agar tidak meninggalkan
+runtime baru. cancel engine bersifat terminal; request berikutnya engine baru.
+app.py menerima pasangan
 --runtime/--model serta --port untuk konfigurasi sementara; tidak menetapkan
 model tertentu sebagai default identitas desktop. Tanpa keduanya input nonaktif.
 

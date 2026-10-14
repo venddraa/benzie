@@ -54,10 +54,10 @@ class ServerConfig:
 
 
 class LocalServerProcess:
-    """Satu pemilik proses; panggil start/stop dari thread pemilik yang sama.
+    """Panggil start/stop dari thread pemilik; request_stop boleh lintas thread.
 
     Health check/request berada di adapter engine. Pemanggil wajib stop saat
-    selesai; kelas ini belum dihubungkan ke lifecycle aplikasi desktop.
+    selesai; worker desktop memakai engine yang memiliki proses ini.
     """
 
     def __init__(self, config: ServerConfig, *, api_key: str | None = None) -> None:
@@ -66,6 +66,7 @@ class LocalServerProcess:
         self._process: subprocess.Popen | None = None
         self._reader: threading.Thread | None = None
         self.failure_hint: str | None = None
+        self._process_lock = threading.Lock()
 
     def _read_diagnostics(self, stream) -> None:
         # Baca pipe agar native process tidak macet. Jangan simpan/log baris mentah.
@@ -109,11 +110,12 @@ class LocalServerProcess:
             environment["LLAMA_API_KEY"] = self._api_key
         self.failure_hint = None
         try:
-            self._process = subprocess.Popen(
-                command, shell=False, env=environment,
-                stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
-            )
+            with self._process_lock:
+                self._process = subprocess.Popen(
+                    command, shell=False, env=environment,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+                )
         except OSError as error:
             raise RuntimeStartError("Proses llama-server gagal dijalankan.") from error
         if self._process.stderr is not None:
@@ -122,6 +124,22 @@ class LocalServerProcess:
             )
             self._reader.start()
         logger.info("Proses runtime dimulai; kesiapan model belum diperiksa")
+
+    def request_stop(self) -> None:
+        """Thread-safe/nonblocking: hentikan child sendiri; worker melakukan reap.
+
+        Kill diperlukan untuk memutus request HTTP yang sedang menunggu. Tidak
+        menghentikan thread Python/Qt atau proses lain.
+        """
+        with self._process_lock:
+            process = self._process
+            if process is not None and process.poll() is None:
+                try:
+                    process.kill()
+                except ProcessLookupError:
+                    pass
+                except OSError as error:
+                    raise RuntimeStartError("Permintaan penghentian runtime gagal.") from error
 
     def stop(self) -> None:
         process = self._process
@@ -143,7 +161,8 @@ class LocalServerProcess:
         except (OSError, subprocess.TimeoutExpired) as error:
             # Pertahankan handle agar pemanggil dapat mencoba cleanup kembali.
             raise RuntimeStartError("Proses llama-server belum berhasil dihentikan.") from error
-        self._process = None
+        with self._process_lock:
+            self._process = None
         if self._reader is not None:
             self._reader.join(timeout=1)
             self._reader = None

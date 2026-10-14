@@ -7,6 +7,7 @@ import logging
 import math
 import secrets
 import time
+import threading
 from typing import Protocol
 
 from benzie.inference.server import LocalServerProcess, ServerConfig
@@ -19,6 +20,10 @@ class InferenceError(Exception):
     """Kegagalan pemuatan/generation yang bisa ditampilkan pemanggil."""
 
 
+class InferenceCancelled(InferenceError):
+    """Request dibatalkan pengguna, bukan kegagalan model."""
+
+
 class InferenceEngine(Protocol):
     def start(self, *, timeout: float = 120) -> None: ...
     def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
@@ -26,6 +31,7 @@ class InferenceEngine(Protocol):
     def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
                         temperature: float = 0.7, timeout: float = 120) -> Generator[GenerationEvent, None, None]: ...
     def close(self) -> None: ...
+    def cancel(self) -> None: ...
 
 
 def _valid_timeout(timeout: float) -> None:
@@ -39,6 +45,17 @@ class LlamaServerEngine:
         self._key = secrets.token_urlsafe(32)
         self._server = LocalServerProcess(config, api_key=self._key)
         self._model_id: str | None = None
+        self._cancelled = threading.Event()
+
+    def cancel(self) -> None:
+        """Boleh dipanggil lintas thread; hanya flag dan sinyal ke child."""
+        self._cancelled.set()
+        logger.info("Pembatalan runtime diminta")
+        self._server.request_stop()
+
+    def _check_cancelled(self) -> None:
+        if self._cancelled.is_set():
+            raise InferenceCancelled("Request dibatalkan.")
 
     @property
     def process_id(self) -> int | None:
@@ -69,11 +86,13 @@ class LlamaServerEngine:
 
     def start(self, *, timeout: float = 120) -> None:
         _valid_timeout(timeout)
+        self._check_cancelled()
         self._server.start()
         self._model_id = None
         deadline = time.monotonic() + timeout
         try:
             while time.monotonic() < deadline:
+                self._check_cancelled()
                 if not self._server.is_running:
                     self._server.stop()  # Tunggu reader diagnosis selesai.
                     raise InferenceError(self._server.failure_hint or "Runtime berhenti saat memuat model.")
@@ -81,14 +100,17 @@ class LlamaServerEngine:
                 try:
                     status, health = self._request("GET", "/health", timeout=request_timeout)
                 except InferenceError:
+                    self._check_cancelled()
                     time.sleep(min(0.1, max(0, deadline - time.monotonic())))
                     continue
+                self._check_cancelled()
                 if status not in (200, 503):
                     raise InferenceError(f"Health check ditolak runtime (HTTP {status}).")
                 if status == 200:
                     if not isinstance(health, dict) or health.get("status") != "ok":
                         raise InferenceError("Status kesiapan runtime tidak valid.")
                     status, models = self._request("GET", "/v1/models", timeout=request_timeout)
+                    self._check_cancelled()
                     if status != 200:
                         raise InferenceError("Identitas runtime lokal tidak dapat diverifikasi.")
                     try:
@@ -106,11 +128,13 @@ class LlamaServerEngine:
             raise InferenceError("Pemuatan model melewati timeout.")
         except BaseException:
             self.close()
+            self._check_cancelled()
             raise
 
     def _generation_payload(self, prompt: str, system_prompt: str, max_tokens: int,
                             temperature: float, timeout: float) -> dict:
         _valid_timeout(timeout)
+        self._check_cancelled()
         if not isinstance(prompt, str) or not prompt.strip() or not isinstance(system_prompt, str):
             raise ValueError("Prompt harus berupa teks dan tidak boleh kosong.")
         if type(max_tokens) is not int or not 1 <= max_tokens < self._config.context_size:
@@ -132,6 +156,7 @@ class LlamaServerEngine:
         logger.info("Generation dimulai")
         try:
             status, data = self._request("POST", "/v1/chat/completions", timeout=timeout, payload=payload)
+            self._check_cancelled()
             if status != 200:
                 raise InferenceError(f"Generation ditolak runtime (HTTP {status}).")
             try:
@@ -143,6 +168,7 @@ class LlamaServerEngine:
         except InferenceError:
             # Tutup proses supaya generation gagal/timeout tidak terus berjalan.
             self.close()
+            self._check_cancelled()
             raise
         logger.info("Generation selesai")
         return content
@@ -164,12 +190,17 @@ class LlamaServerEngine:
                 "Content-Type": "application/json", "Authorization": f"Bearer {self._key}",
             })
             response = connection.getresponse()
+            self._check_cancelled()
             if response.status != 200:
                 raise InferenceError(f"Streaming ditolak runtime (HTTP {response.status}).")
-            yield from iter_events(response)
+            for event in iter_events(response):
+                self._check_cancelled()
+                yield event
+            self._check_cancelled()
             completed = True
             logger.info("Generation streaming selesai")
         except (OSError, http.client.HTTPException, StreamError) as error:
+            self._check_cancelled()
             raise InferenceError("Streaming runtime gagal, terputus, atau melewati timeout.") from error
         finally:
             connection.close()

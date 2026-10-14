@@ -1,4 +1,4 @@
-# Uji UI chat — M3.1
+# Uji UI chat — M3.1/M3.2
 
 Jalankan dari root proyek pada desktop Fedora:
 
@@ -13,8 +13,11 @@ Jalankan dari root proyek pada desktop Fedora:
    jawaban; jawaban muncul bertahap.
 2. Kirim pesan kedua setelah selesai. Input tersedia kembali dan runtime baru
    memproses pesan tersebut. Setiap pesan saat ini dijawab terpisah.
-3. Tutup window setelah selesai. Bila ditutup saat masih bekerja, window
-   menunggu worker dan cleanup selesai sebelum menutup; jangan matikan proses
+3. Klik Batal saat loading atau jawaban panjang sedang muncul. Tunggu status
+   Siap/input aktif kembali; teks parsial tetap terlihat dengan [Dibatalkan].
+4. Kirim pesan lagi setelah cancel; jawaban baru harus berjalan normal.
+5. Tutup window saat request aktif. Window meminta cancel dan menutup setelah
+   worker/cleanup selesai; tidak menunggu seluruh jawaban. Jangan matikan proses
    dari terminal untuk uji penutupan normal.
 
 Tidak ada history DB/context pesan sebelumnya pada langkah ini. Transcript
@@ -55,7 +58,15 @@ berhasil, bukan benchmark kualitas menyeluruh. Permintaan bahasa Inggris,
 streaming/responsivitas/close desktop belum dikonfirmasi eksplisit; review manual
 masih dapat mengikuti checklist di atas sebelum push.
 
-Belum ada tombol cancel; close tidak membatalkan
-generation langsung. Pembatalan responsif menjadi langkah kecil berikutnya.
+M3.2 menambahkan tombol Batal dan close yang meminta cancellation. Flag cancel
+dimiliki per request dan tidak dihapus saat worker baru mulai. Pembatalan
+menghentikan child llama-server milik request; worker menutup koneksi dan reap.
+Operasi kill tidak menunggu proses dari UI atau menghentikan QThread. Engine
+yang telah dibatalkan tidak dipakai ulang; pesan berikutnya memakai engine baru.
+Error cleanup tetap ditampilkan, bukan dianggap pembatalan sukses.
+
+103 tests PASS dan build/diff check PASS. Tes OS child nyata tanpa socket
+membuktikan kill/reap; fake engine/UI membuktikan cancel/loading/generation,
+resend, dan close aktif. Manual model asli menunggu terminal pengguna.
 Core membatasi deadline load 30 detik dan timeout I/O generation 30 detik;
 timeout I/O bukan deadline keseluruhan jika server terus mengirim chunk.
