@@ -8,6 +8,23 @@ from benzie.inference.engine import InferenceCancelled
 from benzie.persistence.conversations import ConversationStore
 
 
+def completed_turns(messages):
+    """Hanya pasangan user/assistant selesai; abaikan turn gagal/parsial/yatim."""
+    result = []
+    pending = None
+    for message in messages:
+        if message.role == "user":
+            pending = message
+        else:
+            if pending is not None and message.status == "completed":
+                result.extend([
+                    {"role": "user", "content": pending.content},
+                    {"role": "assistant", "content": message.content},
+                ])
+            pending = None
+    return result
+
+
 class HistoryService:
     def __init__(self, path: Path, chat: ChatService | None):
         self.store = ConversationStore(path)
@@ -39,6 +56,7 @@ class SavedRequest:
         self.request.cancel()
 
     def events(self):
+        self.request.set_history(completed_turns(self.store.list_messages(self.conversation_id)))
         # Simpan input sebelum inference. Jika gagal, jangan mulai model.
         self.store.append_message(self.conversation_id, "user", self.prompt)
         parts = []

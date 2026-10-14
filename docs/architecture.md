@@ -1,6 +1,6 @@
 # Arsitektur saat ini
 
-Implementasi desktop/core/inference M3.2 dan penyimpanan history M4.1.
+Implementasi desktop/core/inference dan history sampai M4.3.
 
 ```text
 app.py (entry point)
@@ -77,7 +77,14 @@ Smoke script mengirim satu prompt sintetis dan selalu menutup engine.
 generate_stream sekarang membaca SSE, menghasilkan GenerationEvent berisi teks
 serta statistik token/timing. EOF tanpa DONE ditolak. Error dan early close
 menghentikan proses; stream sukses tetap memuat model. Pemanggil harus menutup
-iterator jika berhenti dini. History pesan sebelumnya belum masuk prompt.
+iterator jika berhenti dini. History percakapan aktif masuk prompt sejak M4.3:
+core memilih pasangan user/assistant selesai, mengecualikan failed/cancelled/
+yatim. Adapter memvalidasi role, memakai /apply-template dengan opsi thinking
+yang sama, lalu /tokenize (add_special/parse_special true). Cadangan output dan
+32 token khusus diperhitungkan terhadap context_size. Jika melebihi kapasitas,
+request ditolak tanpa menghapus history; tidak ada pemotongan otomatis.
+Payload dibatasi 1 MiB sebelum preflight. Respons endpoint dibatasi 2 MiB
+seperti request JSON lain. Gagal preflight tidak meneruskan generation.
 
 `core/chat.py` menyediakan ChatService dan ChatRequest, tanpa Qt. Request dibuat
 sebelum worker start, menyimpan flag cancel serta handle engine di bawah lock.

@@ -81,3 +81,18 @@ pesan terbaru, belum konteks history. Coba Batal dan tutup saat generation;
 hasil parsial/status harus tersedia setelah restart. Jalankan tanpa --runtime
 dan --model untuk membaca history tanpa memuat model. Jangan gunakan /tmp
 untuk history penting karena bisa dibersihkan sistem.
+
+## Manual test M4.3 (menggantikan batasan konteks M4.2)
+
+1. Buat percakapan baru. Kirim: "Kode uji saya nila-47. Jawab singkat."
+2. Kirim: "Apa kode uji yang saya sebut tadi?" Periksa nila-47.
+3. Tutup/buka aplikasi dengan data-dir sama, buka history itu, tanyakan lagi.
+4. Buat percakapan lain dan tanyakan kode: konteks percakapan pertama tidak
+   dikirim (jawaban model bisa mengarang, jadi ini bukan bukti isolasi sendiri;
+   isolasi payload juga diuji otomatis).
+5. Kirim teks sintetis panjang yang melampaui context 2048 token: error konteks
+   penuh harus tampil dan UI tetap bisa membuat percakapan baru. Jangan memakai
+   data pribadi untuk smoke test. Coba Batal/kirim ulang seperti sebelumnya.
+
+142 tests PASS; validasi model asli masih melalui terminal pengguna karena
+socket sesi asisten ditolak. Kualitas Qwen3-0.6B belum menjadi acceptance model.

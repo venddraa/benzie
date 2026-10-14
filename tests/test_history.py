@@ -88,3 +88,36 @@ def test_output_save_failure_reported_after_engine_cleanup(tmp_path, monkeypatch
         list(service.new_request("Hai", cid).events())
     assert engine.closed
     assert len(service.messages(cid)) == 1
+
+
+def test_context_is_reloaded_and_isolated_without_duplicate_current_prompt(tmp_path):
+    seen = []
+    class RecordingEngine(Engine):
+        def generate_stream(self, prompt, **kwargs):
+            seen.append((prompt, kwargs["history"]))
+            yield GenerationEvent("Baik")
+    service, first = history(tmp_path, RecordingEngine())
+    list(service.new_request("Kode saya nila", first).events())
+    second = service.new_conversation().id
+    list(service.new_request("Percakapan berbeda", second).events())
+    reopened = HistoryService(service.store.path, service.chat)
+    list(reopened.new_request("Apa kode saya?", first).events())
+    assert seen[0][1] == []
+    assert seen[1][1] == []
+    assert seen[2] == ("Apa kode saya?", [
+        {"role": "user", "content": "Kode saya nila"},
+        {"role": "assistant", "content": "Baik"}])
+
+
+def test_failed_cancelled_and_orphan_turns_are_excluded(tmp_path):
+    from benzie.core.history import completed_turns
+    service, cid = history(tmp_path, Engine())
+    for status in ["cancelled", "failed"]:
+        service.store.append_message(cid, "user", "jangan ikut")
+        service.store.append_message(cid, "assistant", "parsial", status=status)
+    service.store.append_message(cid, "user", "yatim karena crash")
+    service.store.append_message(cid, "user", "yang selesai")
+    service.store.append_message(cid, "assistant", "jawaban selesai")
+    assert completed_turns(service.messages(cid)) == [
+        {"role": "user", "content": "yang selesai"},
+        {"role": "assistant", "content": "jawaban selesai"}]

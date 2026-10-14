@@ -4,7 +4,24 @@ Terakhir diperbarui: 2026-10-14.
 
 Milestone aktif: **4 — history lokal**, per langkah kecil.
 
-## Checkpoint terbaru — M4.2
+## Checkpoint terbaru — M4.3
+
+- Konteks percakapan aktif dibaca dari SQLite sebelum input terbaru disimpan.
+  Hanya pasangan user/assistant completed; turn gagal, dibatalkan, atau yatim
+  tidak ikut. System prompt terpisah; input terbaru hanya sekali.
+- /apply-template dan /tokenize runtime lokal memformat/menghitung konteks.
+  Opsi thinking sama dengan generation. Budget prompt + max_tokens + cadangan
+  32 <= context_size. Jika penuh, request ditolak dengan petunjuk membuat
+  percakapan baru atau memendekkan pesan. History tidak dipotong/dihapus.
+- Pemeriksaan berlaku pada alur history desktop, termasuk pesan pertama.
+  API smoke/benchmark satu-pesan lama tetap tanpa preflight ini.
+- 142 tests PASS. Smoke model asli dicoba tetapi socket lokal ditolak sesi
+  asisten; cleanup dijalankan. Manual multi-turn desktop masih diperlukan.
+- Tidak ada dependency baru atau personal memory lintas percakapan.
+- Usulan commit: `menambah konteks percakapan ke model lokal`.
+  Belum commit/push; tunggu manual test dan review pengguna.
+
+## Checkpoint sebelumnya — M4.2
 
 - HistoryService/SavedRequest menghubungkan store dan inference tanpa Qt.
   Input disimpan sebelum model mulai; hasil lengkap/parsial/status disimpan
@@ -253,7 +270,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Konteks multi-turn, model settings, launcher Applications,
+Validasi manual konteks multi-turn, model settings, launcher Applications,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -261,7 +278,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Pesan commit M4.2: `menghubungkan riwayat percakapan ke tampilan chat`.
+Usulan pesan commit M4.3: `menambah konteks percakapan ke model lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Review M4.2 disetujui pengguna. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

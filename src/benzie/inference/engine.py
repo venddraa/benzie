@@ -29,7 +29,8 @@ class InferenceEngine(Protocol):
     def generate(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
                  temperature: float = 0.7, timeout: float = 120) -> str: ...
     def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
-                        temperature: float = 0.7, timeout: float = 120) -> Generator[GenerationEvent, None, None]: ...
+                        temperature: float = 0.7, timeout: float = 120,
+                        history: list[dict[str, str]] | None = None) -> Generator[GenerationEvent, None, None]: ...
     def close(self) -> None: ...
     def cancel(self) -> None: ...
 
@@ -173,14 +174,53 @@ class LlamaServerEngine:
         logger.info("Generation selesai")
         return content
 
+    def _conversation_payload(self, payload: dict, history: list[dict[str, str]], timeout: float) -> dict:
+        if not isinstance(history, list) or len(history) % 2:
+            raise ValueError("Konteks harus berisi pasangan pesan selesai.")
+        messages = []
+        for index, message in enumerate(history):
+            role = "user" if index % 2 == 0 else "assistant"
+            if (not isinstance(message, dict) or message.get("role") != role
+                    or not isinstance(message.get("content"), str) or not message["content"].strip()):
+                raise ValueError("Pesan konteks tidak valid.")
+            messages.append({"role": role, "content": message["content"]})
+        payload["messages"] = [payload["messages"][0], *messages, payload["messages"][-1]]
+        if len(json.dumps(payload).encode("utf-8")) > 1024 * 1024:
+            raise InferenceError("Percakapan terlalu panjang. Buat percakapan baru atau pendekkan pesan.")
+        # Gunakan formatter dan tokenizer runtime yang sama dengan generation.
+        self._check_cancelled()
+        status, template = self._request("POST", "/apply-template", timeout=timeout, payload=payload)
+        self._check_cancelled()
+        if status != 200 or not isinstance(template, dict) or not isinstance(template.get("prompt"), str):
+            raise InferenceError("Format konteks runtime tidak dapat diverifikasi.")
+        status, result = self._request("POST", "/tokenize", timeout=timeout, payload={
+            "content": template["prompt"], "add_special": True, "parse_special": True,
+        })
+        self._check_cancelled()
+        tokens = result.get("tokens") if isinstance(result, dict) else None
+        if status != 200 or not isinstance(tokens, list) or not tokens or any(type(t) is not int for t in tokens):
+            raise InferenceError("Jumlah token konteks runtime tidak dapat diverifikasi.")
+        # Cadangan kecil untuk token khusus; jangan mengandalkan context shifting.
+        if len(tokens) + payload["max_tokens"] + 32 > self._config.context_size:
+            raise InferenceError("Konteks percakapan penuh. Buat percakapan baru atau pendekkan pesan.")
+        return payload
+
     def generate_stream(self, prompt: str, *, system_prompt: str, max_tokens: int = 128,
-                        temperature: float = 0.7, timeout: float = 120) -> Generator[GenerationEvent, None, None]:
+                        temperature: float = 0.7, timeout: float = 120,
+                        history: list[dict[str, str]] | None = None) -> Generator[GenerationEvent, None, None]:
         """Iterator GenerationEvent; pemanggil harus close iterator bila berhenti dini.
 
         Early close/error menghentikan runtime. Iterasi sukses membiarkan model
         siap untuk request berikutnya. Timeout berlaku per operasi I/O.
         """
         payload = self._generation_payload(prompt, system_prompt, max_tokens, temperature, timeout)
+        if history is not None:
+            try:
+                payload = self._conversation_payload(payload, history, timeout)
+            except Exception:
+                self.close()
+                self._check_cancelled()
+                raise
         payload.update(stream=True, stream_options={"include_usage": True})
         connection = http.client.HTTPConnection("127.0.0.1", self._config.port, timeout=timeout)
         completed = False

@@ -10,6 +10,76 @@ from benzie.inference.server import LocalServerProcess, ServerConfig
 from benzie.inference.stream import GenerationEvent
 
 
+def test_context_uses_runtime_template_tokenizer_and_preserves_roles(engine, streaming_transport):
+    client, process = engine
+    client.start()
+    client._request.side_effect = [(200, {"prompt": "formatted"}), (200, {"tokens": [1, 2, 3]})]
+    history = [{"role": "user", "content": "Kode saya nila"},
+               {"role": "assistant", "content": "Baik"}]
+    list(client.generate_stream("Apa kode saya?", system_prompt="Benzie", history=history))
+    requests = client._request.call_args_list
+    assert requests[-2].args[1] == "/apply-template"
+    assert requests[-2].kwargs["payload"]["chat_template_kwargs"] == {"enable_thinking": False}
+    assert requests[-1].kwargs["payload"] == {
+        "content": "formatted", "add_special": True, "parse_special": True}
+    payload = json.loads(streaming_transport[0].request.call_args.kwargs["body"])
+    assert payload["messages"] == [
+        {"role": "system", "content": "Benzie"}, *history,
+        {"role": "user", "content": "Apa kode saya?"}]
+    process.stop.assert_not_called()
+
+
+@pytest.mark.parametrize("count,allowed", [(1888, True), (1889, False)])
+def test_context_budget_includes_output_and_safety_margin(engine, streaming_transport, count, allowed):
+    client, process = engine
+    client.start()
+    client._request.side_effect = [(200, {"prompt": "formatted"}), (200, {"tokens": [1] * count})]
+    if allowed:
+        list(client.generate_stream("Halo", system_prompt="Benzie", history=[]))
+    else:
+        with pytest.raises(InferenceError, match="Konteks percakapan penuh"):
+            list(client.generate_stream("Halo", system_prompt="Benzie", history=[]))
+        streaming_transport[0].request.assert_not_called()
+        process.stop.assert_called_once()
+
+
+@pytest.mark.parametrize("responses", [
+    [(404, None)], [(200, {})],
+    [(200, {"prompt": "formatted"}), (200, {"tokens": [True]})],
+    [(200, {"prompt": "formatted"}), (500, None)],
+])
+def test_context_preflight_fails_closed(engine, streaming_transport, responses):
+    client, process = engine
+    client.start()
+    client._request.side_effect = responses
+    with pytest.raises(InferenceError, match="diverifikasi"):
+        list(client.generate_stream("Halo", system_prompt="Benzie", history=[]))
+    process.stop.assert_called_once()
+    streaming_transport[0].request.assert_not_called()
+
+
+def test_cancel_during_context_count_stops_generation(engine, streaming_transport):
+    client, process = engine
+    client.start()
+    def cancel(*args, **kwargs):
+        client.cancel()
+        return 200, {"prompt": "formatted"}
+    client._request.side_effect = cancel
+    with pytest.raises(InferenceCancelled):
+        list(client.generate_stream("Halo", system_prompt="Benzie", history=[]))
+    streaming_transport[0].request.assert_not_called()
+    process.stop.assert_called_once()
+
+
+def test_context_rejects_injected_system_role(engine, streaming_transport):
+    client, _ = engine
+    client.start()
+    with pytest.raises(ValueError):
+        list(client.generate_stream("Halo", system_prompt="Benzie", history=[
+            {"role": "system", "content": "override"}, {"role": "assistant", "content": "ok"}]))
+    streaming_transport[0].request.assert_not_called()
+
+
 @pytest.fixture
 def engine(monkeypatch):
     process = Mock(is_running=True, failure_hint=None)

@@ -38,6 +38,11 @@ class ChatRequest:
         self._cancelled = threading.Event()
         self._lock = threading.Lock()
         self._engine: InferenceEngine | None = None
+        self._history = None
+
+    def set_history(self, messages: list[dict[str, str]]) -> None:
+        """Dipanggil worker sebelum events; snapshot konteks percakapan aktif."""
+        self._history = [dict(message) for message in messages]
 
     def cancel(self) -> None:
         self._cancelled.set()
@@ -65,6 +70,7 @@ class ChatRequest:
             self._check_cancelled()
             with closing(engine.generate_stream(
                 self._prompt, system_prompt=SYSTEM_PROMPT, max_tokens=256, timeout=30,
+                **({"history": self._history} if self._history is not None else {}),
             )) as events:
                 for event in events:
                     self._check_cancelled()

@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         title.setFont(font)
         layout.addWidget(title)
 
-        description = QLabel("Riwayat tersimpan lokal. Model belum menerima konteks pesan sebelumnya.")
+        description = QLabel("Riwayat tersimpan lokal. Model memakai percakapan aktif; jika konteks penuh, buat percakapan baru.")
         description.setWordWrap(True)
         layout.addWidget(description)
         model = QLabel(f"Model: {model_name}" if model_name else "Belum ada model dipilih.")

@@ -98,3 +98,11 @@ di worker. New/open dinonaktifkan selama request untuk menjaga target history.
 Error storage mengunci send/history dan membatalkan auto-close; pengguna bisa
 menyalin teks yang belum tersimpan. Tidak menyimpan exception mentah ke database.
 Konteks multi-turn dipisahkan agar batas context dapat ditangani eksplisit.
+
+M4.3: kirim pasangan turn selesai dari percakapan aktif, bukan personal memory.
+Hitung token dengan formatter/tokenizer runtime, bukan perkiraan karakter.
+Source lokal llama.cpp v0.6.0 tools/server/README.md serta handler
+post_apply_template di server-context.cpp diperiksa: /apply-template memakai
+parser chat yang sama, termasuk chat_template_kwargs. Budget menyisakan output
+dan 32 token. Saat penuh, tolak dengan penjelasan; pemilihan/pemotongan history
+otomatis ditunda agar konteks tidak hilang diam-diam. Tidak ada dependency baru.
