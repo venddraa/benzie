@@ -1,10 +1,32 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-14.
+Terakhir diperbarui: 2026-10-15.
 
-Milestone aktif: **4 — history lokal**, per langkah kecil.
+Milestone aktif: **5 — polish V0.1**, per langkah kecil.
 
-## Checkpoint terbaru — M4.3
+## Checkpoint terbaru — M5.1
+
+- M4.3 di-commit (`0c46f90`); pengguna mengonfirmasi manual test aman. Kualitas
+  Qwen3-0.6B tetap belum layak dijadikan model utama; evaluasi kandidat terpisah.
+- Tombol Model lokal membuka dialog runtime, GGUF, dan port. Validasi file
+  executable/header GGUF tanpa menjalankan binary atau memuat model. Perubahan
+  model dikunci selama generation. History dan ID percakapan tetap dipertahankan.
+- Konfigurasi versi 1 disimpan di <data-dir>/model-settings.json, terisolasi per
+  profil data, atomic replace, permission 0600. Tidak masuk Git. Tanpa file:
+  history bisa dibaca dan UI meminta pilihan model. Error konfigurasi/path
+  ditampilkan; file lama tidak dihapus atau ditimpa otomatis.
+- CLI --runtime/--model/--port mengesampingkan pilihan tersimpan hanya untuk
+  sesi itu. Menyimpan lewat dialog adalah aksi eksplisit yang mengubah file.
+- 160 tests PASS dengan exit normal, termasuk config rusak, path hilang,
+  atomic write gagal, override CLI, save/cancel dialog, dan ganti model/history.
+- Tidak ada dependency baru. Model dimuat saat pesan dikirim, bukan saat dialog
+  disimpan; header GGUF valid belum membuktikan weights bisa dimuat runtime.
+- Pengguna mengonfirmasi manual test M5.1 aman dan menyetujui commit.
+- Usulan commit: `menambah pilihan model dan konfigurasi lokal`.
+  Commit disetujui; perintah commit/push dijalankan pengguna. Launcher/offline acceptance
+  belum dikerjakan pada checkpoint ini.
+
+## Checkpoint sebelumnya — M4.3
 
 - Konteks percakapan aktif dibaca dari SQLite sebelum input terbaru disimpan.
   Hanya pasangan user/assistant completed; turn gagal, dibatalkan, atau yatim
@@ -16,7 +38,7 @@ Milestone aktif: **4 — history lokal**, per langkah kecil.
 - Pemeriksaan berlaku pada alur history desktop, termasuk pesan pertama.
   API smoke/benchmark satu-pesan lama tetap tanpa preflight ini.
 - 142 tests PASS. Smoke model asli dicoba tetapi socket lokal ditolak sesi
-  asisten; cleanup dijalankan. Manual multi-turn desktop masih diperlukan.
+  asisten; cleanup dijalankan. Pengguna kemudian mengonfirmasi manual aman.
 - Tidak ada dependency baru atau personal memory lintas percakapan.
 - Usulan commit: `menambah konteks percakapan ke model lokal`.
   Belum commit/push; tunggu manual test dan review pengguna.
@@ -270,7 +292,7 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Validasi manual konteks multi-turn, model settings, launcher Applications,
+Launcher Applications, acceptance offline lengkap,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -278,7 +300,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M4.3: `menambah konteks percakapan ke model lokal`.
+Usulan pesan commit M5.1: `menambah pilihan model dan konfigurasi lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Review M4.2 disetujui pengguna. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

@@ -106,3 +106,14 @@ post_apply_template di server-context.cpp diperiksa: /apply-template memakai
 parser chat yang sama, termasuk chat_template_kwargs. Budget menyisakan output
 dan 32 token. Saat penuh, tolak dengan penjelasan; pemilihan/pemotongan history
 otomatis ditunda agar konteks tidak hilang diam-diam. Tidak ada dependency baru.
+
+## 008 — Pilihan model lokal per profil data (2026-10-15)
+
+M5.1 memakai JSON kecil versi 1 di <data-dir>/model-settings.json, bersama profil
+history. Ini memperjelas isolasi --data-dir untuk smoke/development; rencana
+~/.config/benzie/config.json belum digunakan. Hanya runtime/model/port yang
+diperlukan sekarang. Context/threads tetap default ServerConfig; parameter lain
+belum menjadi settings UI. JSON stdlib dan Widgets bawaan cukup.
+Save memvalidasi dan mengganti file atomik dengan permission 0600. Load tidak
+mengeksekusi binary, mengunduh model, atau memuat weights. UI hanya mengaktifkan
+engine factory untuk pesan berikutnya. CLI tetap override sementara.

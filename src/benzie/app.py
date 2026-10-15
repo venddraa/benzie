@@ -21,7 +21,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--runtime", type=Path, help="path binary llama-server lokal")
     parser.add_argument("--model", type=Path, help="path model GGUF lokal")
-    parser.add_argument("--port", type=int, default=8081, help="port HTTP loopback runtime")
+    parser.add_argument("--port", type=int, help="port HTTP loopback runtime (default 8081 atau konfigurasi tersimpan)")
     args = parser.parse_args(argv)
     if (args.runtime is None) != (args.model is None):
         parser.error("--runtime dan --model harus diberikan bersama")
@@ -60,16 +60,30 @@ def main(argv: list[str] | None = None) -> int:
         message.exec()
         return 1
 
-    chat_service = None
-    if args.model is not None:
-        from benzie.core.chat import ChatService
-        from benzie.inference.engine import LlamaServerEngine
-        from benzie.inference.server import ServerConfig
+    from benzie.core.model_settings import ModelSettings, SettingsError, load_settings
 
-        config = ServerConfig(args.runtime, args.model, port=args.port)
-        chat_service = ChatService(lambda: LlamaServerEngine(config))
+    chat_service = None
+    settings = None
+    settings_error = None
+    if args.model is not None:
+        settings = ModelSettings(args.runtime.expanduser().resolve(), args.model.expanduser().resolve(),
+                                 args.port if args.port is not None else 8081)
+    else:
+        try:
+            settings = load_settings(state.database_path.parent / "model-settings.json")
+            if settings is not None and args.port is not None:
+                settings = ModelSettings(settings.runtime, settings.model, args.port)
+        except SettingsError as error:
+            settings_error = str(error)
+    if settings is not None:
+        try:
+            settings.validate()
+            chat_service = settings.chat_service()
+        except SettingsError as error:
+            settings_error = str(error)
     window = MainWindow(state, chat_service=chat_service,
-                        model_name=args.model.name if args.model is not None else None)
+                        model_name=settings.model.name if settings is not None else None,
+                        model_settings=settings, settings_error=settings_error)
     window.show()
     result = application.exec()
     logger.info("Aplikasi ditutup")

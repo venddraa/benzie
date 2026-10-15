@@ -1,6 +1,6 @@
 # Arsitektur saat ini
 
-Implementasi desktop/core/inference dan history sampai M4.3.
+Implementasi desktop/core/inference, history, dan konfigurasi model M5.1.
 
 ```text
 app.py (entry point)
@@ -37,7 +37,14 @@ kontrol history/send dinonaktifkan sampai aplikasi dibuka ulang.
 
 Default data mengikuti XDG_DATA_HOME, dengan fallback `~/.local/share/benzie`.
 `--data-dir` memungkinkan lokasi development/test terpisah. Resolusi lokasi
-sendiri tidak membuat direktori. File config JSON belum diperlukan saat ini.
+sendiri tidak membuat direktori. core/model_settings.py menyimpan konfigurasi
+runtime/model/port versi 1 di <data-dir>/model-settings.json, permission 0600,
+temporary file + fsync + atomic replace. Penempatan per data-dir menjaga profil
+development dan utama terpisah. Konfigurasi rusak tidak ditimpa otomatis;
+history tetap bisa dibaca, pilihan bisa diperbaiki melalui dialog Model lokal.
+Validasi hanya file/executable/header; pemuatan weights dilakukan worker saat
+pesan dikirim. CLI override bersifat sementara, Save dialog bersifat persisten.
+Dialog hanya presentation; service/engine factory tetap dibuat oleh core.
 
 Logging hanya event lifecycle ke stderr, tanpa log file atau isi conversation.
 Transcript direkonstruksi dari SQLite ketika membuka percakapan; chunk aktif
@@ -102,7 +109,8 @@ Pembatalan sebelum spawn dicek kembali setelah spawn agar tidak meninggalkan
 runtime baru. cancel engine bersifat terminal; request berikutnya engine baru.
 app.py menerima pasangan
 --runtime/--model serta --port untuk konfigurasi sementara; tidak menetapkan
-model tertentu sebagai default identitas desktop. Tanpa keduanya input nonaktif.
+model tertentu sebagai default identitas desktop. Tanpa keduanya, konfigurasi
+tersimpan digunakan; bila belum valid input nonaktif sampai dipilih melalui UI.
 
 inference/benchmark.py membaca metrik Linux proses milik engine, dan script
 benchmark mengukur tiga restart dengan prompt sintetis. JSON hanya metrik,

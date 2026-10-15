@@ -10,13 +10,16 @@ from benzie.ui.chat_worker import ChatWorker
 from benzie.inference.server import RuntimeStartError
 from benzie.core.history import HistoryService
 from benzie.persistence.database import DatabaseError
+from benzie.ui.model_dialog import ModelDialog
 
 
 class MainWindow(QMainWindow):
     def __init__(self, state: StartupState, *, chat_service: ChatService | None = None,
-                 model_name: str | None = None) -> None:
+                 model_name: str | None = None, model_settings=None, settings_error: str | None = None) -> None:
         super().__init__()
         self._service = chat_service
+        self._model_settings = model_settings
+        self._settings_path = state.database_path.parent / "model-settings.json"
         self._history = HistoryService(state.database_path, chat_service)
         self._conversation_id = None
         self._storage_failed = False
@@ -40,10 +43,19 @@ class MainWindow(QMainWindow):
         description = QLabel("Riwayat tersimpan lokal. Model memakai percakapan aktif; jika konteks penuh, buat percakapan baru.")
         description.setWordWrap(True)
         layout.addWidget(description)
-        model = QLabel(f"Model: {model_name}" if model_name else "Belum ada model dipilih.")
-        model.setTextFormat(Qt.TextFormat.PlainText)
-        model.setWordWrap(True)
-        layout.addWidget(model)
+        model_row = QHBoxLayout()
+        self.model_label = QLabel(f"Model dipilih: {model_name}" if model_name else "Belum ada model dipilih.")
+        self.model_label.setTextFormat(Qt.TextFormat.PlainText)
+        self.model_label.setWordWrap(True)
+        self.model_button = QPushButton("Model lokal…")
+        self.model_button.clicked.connect(self._choose_model)
+        model_row.addWidget(self.model_label, 1)
+        model_row.addWidget(self.model_button)
+        layout.addLayout(model_row)
+        self.settings_label = QLabel(settings_error or "")
+        self.settings_label.setTextFormat(Qt.TextFormat.PlainText)
+        self.settings_label.setWordWrap(True)
+        layout.addWidget(self.settings_label)
 
         history_row = QHBoxLayout()
         self.conversation_picker = QComboBox()
@@ -83,6 +95,24 @@ class MainWindow(QMainWindow):
                 self._open_conversation()
         except DatabaseError as error:
             self._storage_error(str(error))
+
+    @Slot()
+    def _choose_model(self):
+        if self._worker is not None or self._close_pending or self._storage_failed:
+            return
+        dialog = ModelDialog(self._settings_path, self._model_settings, self)
+        try:
+            if dialog.exec() == ModelDialog.DialogCode.Accepted:
+                self._model_settings = dialog.selected_settings
+                self._service = self._model_settings.chat_service()
+                self._history.chat = self._service
+                self.model_label.setText(f"Model dipilih: {self._model_settings.model.name}")
+                self.settings_label.clear()
+                self.message_input.setEnabled(True)
+                self._update_send()
+                self.statusBar().showMessage("Pilihan tersimpan. Model dimuat saat pesan dikirim.")
+        finally:
+            dialog.deleteLater()
 
     def _refresh_conversations(self):
         conversations = self._history.conversations()
@@ -136,6 +166,7 @@ class MainWindow(QMainWindow):
     @Slot(str)
     def _storage_error(self, message):
         self._storage_failed = True
+        self.model_button.setEnabled(False)
         self._close_pending = False
         self._error("History gagal disimpan/dibaca. " + message)
         self.statusBar().showMessage("History bermasalah; salin teks yang diperlukan sebelum menutup aplikasi.")
@@ -175,6 +206,7 @@ class MainWindow(QMainWindow):
         worker.finished.connect(self._finished)
         self._update_send()
         self.cancel_button.setEnabled(True)
+        self.model_button.setEnabled(False)
         self.new_button.setEnabled(False)
         self.conversation_picker.setEnabled(False)
         worker.start()
@@ -233,6 +265,7 @@ class MainWindow(QMainWindow):
             self._storage_error(str(error))
             return
         self.new_button.setEnabled(True)
+        self.model_button.setEnabled(True)
         self.conversation_picker.setEnabled(True)
         if self._close_pending:
             self.close()

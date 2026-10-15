@@ -96,3 +96,13 @@ untuk history penting karena bisa dibersihkan sistem.
 
 142 tests PASS; validasi model asli masih melalui terminal pengguna karena
 socket sesi asisten ditolak. Kualitas Qwen3-0.6B belum menjadi acceptance model.
+
+## Manual test M5.1
+
+Jalankan `.venv/bin/benzie --data-dir /tmp/benzie-model-smoke` tanpa argumen model.
+Klik Model lokal, pilih binary llama-server hasil setup dan GGUF lokal, lalu
+Simpan. Kirim pesan untuk menguji pemuatan model. Tutup, jalankan perintah yang
+sama: model harus sudah dipilih dan history bisa dilanjutkan. Coba Cancel pada
+dialog: pilihan lama tetap. Coba file non-GGUF: error muncul tanpa mengubah
+pilihan yang tersimpan. Selama generation, tombol Model lokal nonaktif.
+Launcher belum dipasang. /tmp hanya untuk smoke; data utama mengikuti XDG.
