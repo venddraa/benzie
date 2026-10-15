@@ -3,7 +3,7 @@
 Personal AI assistant lokal milik pengguna. Nama Benzie berasal dari kucing
 jantan pertama yang diadopsi pengguna; tidak mempunyai filosofi branding tambahan.
 
-Saat ini: **M5.2, launcher development Fedora**. Panduan: [chat UI](chat-ui.md)
+Saat ini: **M5.3, acceptance V0.1**. Panduan: [penerimaan offline](acceptance-v0.1.md), [chat UI](chat-ui.md)
 dan [launcher desktop](desktop-launcher.md). Chat/history/model settings tersedia;
 memory, tools, dan voice belum diimplementasikan.
 Status verifikasi terbaru ada di [current-state](current-state.md).

@@ -2,9 +2,35 @@
 
 Terakhir diperbarui: 2026-10-15.
 
-Milestone aktif: **5 — polish V0.1**, per langkah kecil.
+Status: **V0.1 selesai secara fungsional**, menunggu review checkpoint penutup.
+Tidak ada milestone implementasi berikutnya yang dimulai. Berhenti untuk evaluasi.
 
-## Checkpoint terbaru — M5.2
+## Checkpoint terbaru — M5.3
+
+- M5.2 di-commit (`c83a3c6`); worktree bersih sebelum langkah ini.
+- Script acceptance_local_chat.py membaca konfigurasi model yang sudah ada dan
+  menguji chat, reopen/continue, cancel, isolasi, serta cleanup dengan data
+  sintetis sementara. Tidak menyentuh percakapan utama atau mengubah koneksi.
+- 172 tests PASS, lockfile check dan dependency compatibility PASS. Script
+  acceptance diuji dengan fake engine; ini bukan hasil native offline.
+- Pemeriksaan source: HTTP inference loopback, child runtime lokal dengan
+  opsi offline; tidak ada dependency cloud API/downloader dalam aplikasi.
+- Percobaan smoke native sesi ini belum mencapai inference: konfigurasi model
+  tidak ditemukan pada profil default. Simpan pilihan lewat launcher atau
+  berikan --settings untuk profil yang telah dikonfigurasi.
+- Panduan dan batas verifikasi: docs/acceptance-v0.1.md. Menunggu pengguna
+  semula untuk alur desktop offline; sekarang sudah dikonfirmasi aman.
+- Pengguna menjalankan script dengan runtime/model asli: chat/penyimpanan,
+  reopen/continue, cancel/parsial/isolasi semuanya PASS. Data tes dibersihkan.
+  Pengguna mengonfirmasi internet mati dan alur launcher/chat/history aman.
+- Acceptance offline V0.1 PASS berdasarkan pengujian pengguna. Desktop lokal,
+  pilihan model, chat, history setelah restart, serta cancel berfungsi. Ini
+  penerimaan fitur, bukan pengesahan kualitas Qwen3-0.6B sebagai model utama.
+- Usulan commit:
+  `menambah pemeriksaan penerimaan chat lokal`.
+  Belum commit/push; berhenti menunggu review checkpoint penutup.
+
+## Checkpoint sebelumnya — M5.2
 
 - M5.1 di-commit (`874975d`), worktree bersih sebelum langkah ini.
 - scripts/desktop_launcher.py membuat shortcut per-user benzie.desktop dengan
@@ -311,7 +337,6 @@ dijalankan dari terminal pengguna. Remote: https://github.com/venddraa/benzie.gi
 
 ## Belum diimplementasikan
 
-Launcher Applications, acceptance offline lengkap,
 memory, RAG, file search, tools, shell, voice, vision, avatar, fine-tuning.
 
 Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
@@ -319,7 +344,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Pesan commit M5.2: `menambah launcher desktop Fedora`.
+Usulan pesan commit M5.3: `menambah pemeriksaan penerimaan chat lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Review M4.2 disetujui pengguna. Berhenti setelah langkah
-kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.
+sendiri. Acceptance M5.3 dikonfirmasi pengguna. V0.1 ditutup untuk evaluasi;
+tunggu keputusan pengguna sebelum pekerjaan berikutnya.

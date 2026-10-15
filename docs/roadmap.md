@@ -9,11 +9,15 @@ Milestone implementasi berbeda dari nomor versi produk.
 | 2 | llama-server + satu model kecil, prompt/response, benchmark | Selesai; di-commit/push pengguna |
 | 3 | Hubungkan inference ke UI; streaming/cancel dan error handling | Di-commit 1be56d3; pengguna menyatakan fitur aman |
 | 4 | New/open/continue conversation; persistence pesan | Selesai, commit 0c46f90; manual dikonfirmasi aman |
-| 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | M5.2 launcher dikonfirmasi berfungsi pengguna; offline acceptance berikutnya |
+| 5 | Launcher Fedora, pemilihan model, polish dan acceptance offline | Selesai: 172 tests PASS dan desktop offline dikonfirmasi pengguna |
 
 V0.1 berhasil bila aplikasi dibuka dari desktop Fedora, model lokal dapat
 dipilih/dimuat, chat bekerja, dan history bertahan setelah restart, termasuk
 ketika internet tidak tersedia. Setelah itu berhenti untuk evaluasi.
+
+2026-10-15: definisi sukses V0.1 dikonfirmasi terpenuhi pengguna dengan internet
+dimatikan. Berhenti untuk evaluasi. Kualitas model masih perlu benchmark
+kandidat terpisah; belum mengunduh atau memilih model utama berikutnya.
 
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
