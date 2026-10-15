@@ -4,7 +4,26 @@ Terakhir diperbarui: 2026-10-15.
 
 Milestone aktif: **5 — polish V0.1**, per langkah kecil.
 
-## Checkpoint terbaru — M5.1
+## Checkpoint terbaru — M5.2
+
+- M5.1 di-commit (`874975d`), worktree bersih sebelum langkah ini.
+- scripts/desktop_launcher.py membuat shortcut per-user benzie.desktop dengan
+  Python .venv -m benzie, tanpa uv/shell/sudo/download saat membuka aplikasi.
+- Default launcher memakai profil XDG normal; --data-dir opsional untuk profil
+  smoke. --applications-dir untuk staging. --remove hanya menghapus shortcut
+  milik installer, tidak menyentuh model/config/history. Update file atomik.
+- DesktopFileName aplikasi diset benzie agar cocok dengan identitas launcher.
+- 169 tests PASS, termasuk validator desktop/GLib Fedora, install/update/remove
+  pada direktori sementara, proteksi file lain, atomic write gagal, dan cwd lain.
+- Dokumen pemasangan/pencopotan dan batas checkout development tersedia di
+  docs/desktop-launcher.md. Folder proyek/.venv harus tetap tersedia.
+- Pengguna memasang launcher dan mengonfirmasi Benzie tersedia serta bisa
+  dibuka dari Applications. Acceptance offline lengkap belum dikonfirmasi.
+- Usulan commit: `menambah launcher desktop Fedora`.
+  Commit/push disetujui; dijalankan pengguna. Acceptance offline lengkap masih
+  checkpoint berikutnya.
+
+## Checkpoint sebelumnya — M5.1
 
 - M4.3 di-commit (`0c46f90`); pengguna mengonfirmasi manual test aman. Kualitas
   Qwen3-0.6B tetap belum layak dijadikan model utama; evaluasi kandidat terpisah.
@@ -300,7 +319,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M5.1: `menambah pilihan model dan konfigurasi lokal`.
+Pesan commit M5.2: `menambah launcher desktop Fedora`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Review M4.2 disetujui pengguna. Berhenti setelah langkah
 kecil yang telah lolos tes; tunggu pengguna sebelum langkah berikutnya.

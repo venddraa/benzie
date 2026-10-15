@@ -42,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
 
     application = QApplication(["benzie"])
     application.setApplicationName("Benzie")
+    application.setDesktopFileName("benzie")
     logger.info("Aplikasi dimulai")
     try:
         state = initialize_application(args.data_dir)

@@ -117,3 +117,13 @@ belum menjadi settings UI. JSON stdlib dan Widgets bawaan cukup.
 Save memvalidasi dan mengganti file atomik dengan permission 0600. Load tidak
 mengeksekusi binary, mengunduh model, atau memuat weights. UI hanya mengaktifkan
 engine factory untuk pesan berikutnya. CLI tetap override sementara.
+
+## 009 — Launcher development per-user (2026-10-15)
+
+Gunakan desktop entry standar yang menunjuk Python .venv absolut dan -m benzie.
+Tidak memakai uv run karena membuka aplikasi tidak boleh memicu dependency
+resolution/download. Belum membuat RPM/bundle: checkout/.venv harus tetap ada.
+Installer offline standard library, update atomik, menolak file asing/symlink.
+Pencopotan hanya shortcut. Ikon bawaan sistem cukup untuk scope saat ini.
+Exec quoting mengikuti spesifikasi freedesktop dan diperiksa validator/parser
+GLib lokal; path persen/kontrol ditolak agar tidak menjadi field-code/injeksi.

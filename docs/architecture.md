@@ -2,6 +2,13 @@
 
 Implementasi desktop/core/inference, history, dan konfigurasi model M5.1.
 
+M5.2 menambahkan installer shortcut development scripts/desktop_launcher.py.
+Desktop entry per-user menunjuk interpreter .venv absolut (tanpa resolve
+symlink interpreter agar venv tetap berlaku), argumen -m benzie, Terminal=false,
+tanpa shell atau uv sync. Python package tetap berasal dari checkout editable.
+Default data XDG diselesaikan oleh aplikasi saat launch; --data-dir opsional
+untuk profil terpisah. Nama desktop file benzie sesuai DesktopFileName Qt.
+
 ```text
 app.py (entry point)
   ├── config.py → lokasi data
