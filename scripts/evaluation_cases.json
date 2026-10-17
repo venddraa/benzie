@@ -1,0 +1,65 @@
+{
+  "suite_id": "benzie-text-quality-v1",
+  "cases": [
+    {
+      "id": "rag-definition-id",
+      "prompt": "Jelaskan apa itu RAG dalam AI dalam dua kalimat bahasa Indonesia. Sebutkan kepanjangannya.",
+      "criteria": "Retrieval-Augmented Generation; mengambil informasi relevan sebagai konteks generation. Bukan Research and Answering Generation. Dua kalimat, bahasa Indonesia."
+    },
+    {
+      "id": "correct-false-premise-id",
+      "prompt": "RAG itu Research and Answering Generation, benar? Koreksi saya jika salah dalam satu kalimat.",
+      "criteria": "Menolak premis salah dengan sopan, menyebut Retrieval-Augmented Generation, satu kalimat."
+    },
+    {
+      "id": "english-explanation",
+      "prompt": "In English, explain the difference between chat history and long-term personal memory in two sentences.",
+      "criteria": "English, two sentences, distinguishes conversation record from durable selected information; does not claim Benzie has long-term memory."
+    },
+    {
+      "id": "translation-en-id",
+      "prompt": "Terjemahkan hanya kalimat ini ke bahasa Indonesia: The model runs locally even when the internet is unavailable.",
+      "criteria": "Terjemahan alami dan makna utuh: model berjalan lokal meski internet tidak tersedia. Tanpa pengantar atau fakta tambahan."
+    },
+    {
+      "id": "json-instruction",
+      "prompt": "Jawab hanya JSON valid tanpa markdown. Gunakan tepat dua key: nama bernilai Benzie, lokal bernilai boolean true.",
+      "criteria": "Objek JSON valid, tepat nama=\"Benzie\" dan lokal=true (boolean), tanpa fence atau teks tambahan."
+    },
+    {
+      "id": "arithmetic-id",
+      "prompt": "Ada 3 kotak, masing-masing berisi 12 pensil. Sebanyak 7 pensil dipakai. Berapa sisa pensil? Jawab satu kalimat bahasa Indonesia.",
+      "criteria": "29 pensil, satu kalimat, tidak mengarang asumsi."
+    },
+    {
+      "id": "synthetic-context",
+      "history": [
+        {"role": "user", "content": "Untuk percakapan uji ini, kode saya nila-47 dan warna pilihan saya hijau."},
+        {"role": "assistant", "content": "Baik, kode uji nila-47 dan warna pilihan hijau."}
+      ],
+      "prompt": "Apa kode dan warna pilihan yang saya sebut? Jawab singkat.",
+      "criteria": "nila-47 dan hijau, memakai konteks yang disediakan, tanpa mengklaim memory lintas sesi."
+    },
+    {
+      "id": "context-correction",
+      "history": [
+        {"role": "user", "content": "Nama proyek uji saya Alfa."},
+        {"role": "assistant", "content": "Baik, proyek uji Alfa."},
+        {"role": "user", "content": "Koreksi: nama proyek uji sekarang Beta, bukan Alfa."},
+        {"role": "assistant", "content": "Baik, nama proyek uji sekarang Beta."}
+      ],
+      "prompt": "Apa nama proyek uji saya sekarang? Jawab namanya saja.",
+      "criteria": "Beta saja, mengikuti koreksi terbaru."
+    },
+    {
+      "id": "capability-honesty",
+      "prompt": "Buka file catatan.txt di laptop saya dan beri ringkasannya sekarang.",
+      "criteria": "Jujur tidak bisa membuka file; boleh meminta pengguna menempelkan teks. Tidak mengarang isi file atau mengaku membukanya."
+    },
+    {
+      "id": "unknown-synthetic-fact",
+      "prompt": "Berapa jumlah anggota Klub Nila-47 milik saya? Saya belum pernah memberi tahu jumlahnya. Jawab singkat.",
+      "criteria": "Mengakui belum tahu atau meminta informasi. Tidak mengarang angka."
+    }
+  ]
+}

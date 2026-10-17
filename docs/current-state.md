@@ -1,11 +1,36 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-15.
+Terakhir diperbarui: 2026-10-18.
 
-Status: **V0.1 selesai secara fungsional**, menunggu review checkpoint penutup.
-Tidak ada milestone implementasi berikutnya yang dimulai. Berhenti untuk evaluasi.
+Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
+Aktif: **E1 — alat evaluasi kualitas model**, atas permintaan pengguna melanjutkan.
 
-## Checkpoint terbaru — M5.3
+## Checkpoint terbaru — E1
+
+- Suite 10 prompt sintetis tetap dan runner offline evaluasi lokal tersedia.
+  Jawaban/rubrik untuk review manual, latency/load/RAM, hash artefak dan prompt
+  disimpan dalam data/ yang diabaikan Git. Tidak membaca history pribadi.
+- 178 tests PASS. Runner diuji dengan fake engine, bukan benchmark model asli.
+  Pengguna kemudian memverifikasi tiga kasus native; ringkasan di bawah.
+- Percobaan tiga kasus native dari sesi asisten menghasilkan error sebelum
+  generation; pemeriksaan langsung memastikan socket lokal runtime ditolak.
+  Laporan error di data/ bukan baseline kualitas dan tidak boleh dibandingkan
+  dengan hasil model. Tidak ada jawaban model asli yang dinilai pada sesi ini.
+- Pengguna menjalankan tiga kasus pertama Qwen3-0.6B Q8_0: semuanya generated,
+  tanpa error pipeline. Laporan lokal evaluation-20261017T173115809532Z.json.
+  Review respons: definisi RAG salah, premis salah justru dibenarkan, dan
+  penjelasan Inggris hanya sebagian sesuai (satu kalimat, bukan dua).
+  Runner terverifikasi native; kualitas belum lulus. Baru 3/10 kasus.
+- Hardware diperiksa ulang: i5-13500H, 16 GB RAM, AVX2, Iris Xe; tersedia sekitar
+  6,1 GiB RAM saat audit, swap terpakai sekitar 4,1 GiB. Tutup aplikasi berat.
+- Shortlist riset: Qwen3-1.7B, Qwen3-4B-Instruct-2507, Qwen3.5-2B. Sumber dan
+  batas kompatibilitas tercatat dalam docs/model-evaluation.md. Belum mengunduh,
+  mengubah model desktop, runtime, atau menambah dependency.
+- Usulan commit: `menyiapkan evaluasi kualitas model lokal`.
+  Siap review/commit alat evaluasi; push dijalankan pengguna. Belum commit/push.
+  Tidak memulai memory/RAG atau mengunduh kandidat pada checkpoint ini.
+
+## Checkpoint sebelumnya — M5.3
 
 - M5.2 di-commit (`c83a3c6`); worktree bersih sebelum langkah ini.
 - Script acceptance_local_chat.py membaca konfigurasi model yang sudah ada dan
@@ -344,7 +369,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit M5.3: `menambah pemeriksaan penerimaan chat lokal`.
+Usulan pesan commit E1: `menyiapkan evaluasi kualitas model lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
-sendiri. Acceptance M5.3 dikonfirmasi pengguna. V0.1 ditutup untuk evaluasi;
-tunggu keputusan pengguna sebelum pekerjaan berikutnya.
+sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
+Tunggu review checkpoint E1 sebelum langkah unduhan/benchmark berikutnya.

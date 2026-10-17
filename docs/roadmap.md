@@ -19,6 +19,12 @@ ketika internet tidak tersedia. Setelah itu berhenti untuk evaluasi.
 dimatikan. Berhenti untuk evaluasi. Kualitas model masih perlu benchmark
 kandidat terpisah; belum mengunduh atau memilih model utama berikutnya.
 
+2026-10-18: pengguna meminta lanjut. E1 menyiapkan suite/runner evaluasi model
+lokal (178 tests PASS); baseline kualitas model asli belum dijalankan. Ini
+evaluasi pasca-V0.1, bukan implementasi memory atau fitur V0.2 otomatis.
+Panduan dan shortlist: model-evaluation.md. Setiap unduhan kandidat dipisahkan
+agar file/revision/checksum dan kompatibilitas dapat diperiksa terlebih dahulu.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

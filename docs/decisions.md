@@ -127,3 +127,12 @@ Installer offline standard library, update atomik, menolak file asing/symlink.
 Pencopotan hanya shortcut. Ikon bawaan sistem cukup untuk scope saat ini.
 Exec quoting mengikuti spesifikasi freedesktop dan diperiksa validator/parser
 GLib lokal; path persen/kontrol ditolak agar tidak menjadi field-code/injeksi.
+
+## 010 — Evaluasi kualitas lokal terpisah dari aplikasi (2026-10-18)
+
+Gunakan suite sintetis tetap, rubrik manusia, dan runner standard library.
+Simpan respons evaluasi secara sengaja hanya pada laporan data/ ignored; tidak
+memakai percakapan pribadi atau cloud judge. Kontrol context/output/sampling,
+catat hash artefak dan bedakan status generated dari skor jawaban. Restart per
+kasus mengikuti lifecycle aplikasi; tidak mengubah prompt/sampling desktop
+atau memilih model utama dari benchmark internet. Unduhan kandidat terpisah.
