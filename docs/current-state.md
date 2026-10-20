@@ -1,11 +1,28 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-18.
+Terakhir diperbarui: 2026-10-20.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E1 — alat evaluasi kualitas model**, atas permintaan pengguna melanjutkan.
+Aktif: **E2 — persiapan kandidat pembanding**, atas permintaan pengguna melanjutkan.
 
-## Checkpoint terbaru — E1
+## Checkpoint terbaru — E2
+
+- E1 sudah di-commit 0d699c5. Baseline native tersedia baru tiga kasus; full
+  suite 10 kasus menunggu terminal pengguna sebelum perbandingan kandidat.
+- GGUF resmi Qwen3-1.7B dipatok pada revision/SHA256; tersedia Q8_0, bukan
+  Q4_K_M pada revision yang diperiksa. Dipilih untuk eksperimen publisher resmi
+  dan quant sama dengan baseline; bukan keputusan model utama.
+- Script manual setup_qwen17_candidate.sh hanya menyiapkan model baru,
+  download resumable HTTPS dan checksum, tanpa overwrite file final berbeda.
+  Config/runtime/model lama tidak berubah. Sekitar 1,83 GB unduhan.
+- 184 tests PASS dengan fixture lokal; tidak mengunduh weights. Sumber/pin,
+  cara baseline lengkap dan setup ada di docs/qwen17-experiment.md.
+- Unduhan, native load, dan benchmark kandidat masih pending; pengguna
+  menjalankan setup di model directory utama. Tidak ada dependency baru.
+- Usulan commit: `menyiapkan kandidat model pembanding Qwen3 1.7B`.
+  Belum commit/push. Berhenti menunggu hasil baseline/setup dan review.
+
+## Checkpoint sebelumnya — E1
 
 - Suite 10 prompt sintetis tetap dan runner offline evaluasi lokal tersedia.
   Jawaban/rubrik untuk review manual, latency/load/RAM, hash artefak dan prompt
@@ -369,7 +386,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E1: `menyiapkan evaluasi kualitas model lokal`.
+Usulan pesan commit E2: `menyiapkan kandidat model pembanding Qwen3 1.7B`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review checkpoint E1 sebelum langkah unduhan/benchmark berikutnya.
+Tunggu review checkpoint E2 sebelum langkah load/benchmark kandidat berikutnya.

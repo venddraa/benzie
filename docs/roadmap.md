@@ -25,6 +25,10 @@ evaluasi pasca-V0.1, bukan implementasi memory atau fitur V0.2 otomatis.
 Panduan dan shortlist: model-evaluation.md. Setiap unduhan kandidat dipisahkan
 agar file/revision/checksum dan kompatibilitas dapat diperiksa terlebih dahulu.
 
+2026-10-20: E1 di-commit. E2 menyiapkan script artefak resmi Qwen3-1.7B Q8_0
+berpin (184 tests PASS). Baseline full suite, unduhan dan load kandidat pending;
+tidak mengubah model utama. Panduan: qwen17-experiment.md.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

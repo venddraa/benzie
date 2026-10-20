@@ -136,3 +136,9 @@ memakai percakapan pribadi atau cloud judge. Kontrol context/output/sampling,
 catat hash artefak dan bedakan status generated dari skor jawaban. Restart per
 kasus mengikuti lifecycle aplikasi; tidak mengubah prompt/sampling desktop
 atau memilih model utama dari benchmark internet. Unduhan kandidat terpisah.
+
+E2, 2026-10-20: Qwen3-1.7B eksperimen awal memakai Q8_0 resmi karena Q4_K_M
+tidak tersedia pada revision resmi yang diperiksa. Quant sama dengan baseline
+memisahkan eksperimen ini dari perubahan tingkat quantization, tetapi ukuran
+RAM/weights tidak dibuat sama. Setup terpisah mematok revision dan SHA256;
+download tidak pernah dipanggil aplikasi. Tidak mengganti pilihan desktop.

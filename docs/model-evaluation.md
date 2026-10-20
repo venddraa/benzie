@@ -117,3 +117,11 @@ Ini review asisten atas tiga kasus, belum suite lengkap atau evaluasi berulang.
 Tidak menyimpulkan kualitas kandidat lain. Checkpoint runner dapat disimpan
 meskipun model baseline gagal rubrik. Selanjutnya jalankan semua 10 kasus sebelum
 membandingkan kandidat dengan suite dan pengaturan sama.
+
+## Pembaruan E2 — 2026-10-20
+
+GGUF resmi 1.7B pada revision yang diperiksa hanya menyediakan Q8_0. Rencana
+awal Q4_K_M belum menjadi artefak pilihan. Eksperimen berikutnya memakai Q8_0
+resmi, mempertahankan quant sama dengan baseline. Pin/sumber dan script setup
+manual: [qwen17-experiment.md](qwen17-experiment.md). Belum mengunduh, memuat,
+atau mengukur kandidat pada sesi asisten; baseline 10 kasus tetap perlu dulu.
