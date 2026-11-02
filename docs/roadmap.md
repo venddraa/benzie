@@ -37,6 +37,10 @@ terminal pengguna karena socket sesi asisten ditolak. Tidak ada perubahan fitur.
 vs baseline 9/20. Performance diukur pada kondisi RAM/swap berbeda. Hasil
 didokumentasikan, tidak memilih model utama atau mengunduh kandidat berikutnya.
 
+2026-11-02 E5: runner pengukuran ulang berpasangan siap (192 tests PASS),
+native pending. Satu pasangan awal sebelum pengulangan lebih banyak. Tidak
+memilih model utama atau mengubah runtime/prompt/model desktop.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

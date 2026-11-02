@@ -3,9 +3,22 @@
 Terakhir diperbarui: 2026-11-02.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E4 — review perbandingan pertama**, menunggu review checkpoint.
+Aktif: **E5 — runner evaluasi berpasangan**, menunggu uji native/review.
 
-## Checkpoint terbaru — E4
+## Checkpoint terbaru — E5
+
+- E4 di-commit fff199c. Runner evaluate_model_pair.py menjalankan evaluator E1
+  berurutan untuk kedua model, default satu pasangan 10 kasus per model.
+  --pairs 3 memberi urutan AB/BA/AB; tidak ada concurrency model.
+- Ringkasan per-run memuat metrik dan RAM/swap; validasi kontrol, hash artefak,
+  kasus/complete. Run gagal menghentikan eksperimen; laporan lama tidak ditimpa.
+- 192 tests PASS, tanpa dependency baru. Core/UI/model pilihan tidak diubah.
+  Runner unit-tested dengan fake; native berpasangan menunggu terminal pengguna.
+- Panduan dan batas interpretasi: docs/paired-model-evaluation.md.
+- Usulan commit: `menambah evaluasi model berpasangan`.
+  Belum commit/push; tunggu hasil satu pasangan dan review pengguna.
+
+## Checkpoint sebelumnya — E4
 
 - E3 di-commit 71e533e. Pengguna menjalankan smoke 1.7B PASS (satu startup
   5,23 s, respons dan cleanup), kemudian evaluasi 10 kasus tanpa error.
@@ -421,7 +434,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E4: `mencatat perbandingan awal model lokal`.
+Usulan pesan commit E5: `menambah evaluasi model berpasangan`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review E4 sebelum pengulangan benchmark atau keputusan kandidat berikutnya.
+Tunggu hasil/review E5 sebelum keputusan kandidat atau perubahan berikutnya.

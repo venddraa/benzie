@@ -139,3 +139,10 @@ Smoke dan evaluasi 1.7B native pengguna PASS. Review manual pertama 11/20
 dibanding baseline 9/20; belum layak dipilih sebagai model utama dari bukti ini.
 Kondisi RAM/swap, kernel, dan Python berbeda, jadi angka performance belum
 perbandingan terkontrol. [Hasil berdampingan](model-comparison-first-pass.md).
+
+## Pembaruan E5 — 2026-11-02
+
+Runner memakai evaluator yang sama untuk model berurutan, kontrol konsisten,
+serta ringkasan kondisi RAM/swap tiap run. Mulai satu pasangan dahulu;
+pengulangan tiga pasangan opsional setelahnya. Tidak mengklaim kondisi termal
+atau tekanan memori otomatis sama. [Panduan](paired-model-evaluation.md).
