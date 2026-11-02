@@ -71,3 +71,7 @@ Checkpoint setelah artefak verified: smoke native 1.7B lalu evaluasi 10 kasus
 dengan runtime/suite/parameter yang sama. Bandingkan jawaban/rubrik dan metrik,
 bukan ukuran model saja. Jangan mengganti model utama berdasarkan keberhasilan
 download. Tidak memulai memory/RAG/voice atau fine-tuning.
+
+Pembaruan 2026-11-02: unduhan sudah tersedia dan checksum cocok. Baseline
+lengkap juga tersedia. Native load kandidat belum terverifikasi karena socket
+sesi asisten ditolak. Lanjutkan [review baseline E3](model-baseline-review.md).

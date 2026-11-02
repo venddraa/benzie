@@ -1,11 +1,27 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-10-20.
+Terakhir diperbarui: 2026-11-02.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E2 — persiapan kandidat pembanding**, atas permintaan pengguna melanjutkan.
+Aktif: **E3 — review baseline dan verifikasi kandidat**, atas permintaan pengguna.
 
-## Checkpoint terbaru — E2
+## Checkpoint terbaru — E3
+
+- E2 di-commit 0edcae1. Baseline lengkap ditemukan pada laporan pengguna
+  evaluation-20261020T160004146747Z.json: 10/10 generated, complete=true.
+- Review manual asisten 0.6B: 9/20 berdasarkan rubrik E1. RAG, koreksi premis,
+  hitungan, dan kejujuran kemampuan gagal. Bukan skor umum kecerdasan model.
+- Median load 0,6121 s, TTFT 0,3675 s, decode 54,0184 tok/s; peak RSS child
+  909,39 MiB. Hash runtime/suite/system prompt cocok dengan file saat review.
+- Kandidat 1.7B Q8_0 tersedia, 1.834.426.016 bytes, checksum cocok pin. Smoke
+  asisten port 8082 gagal membuka socket lokal; cleanup dijalankan. Native
+  load/generation menunggu terminal pengguna.
+- 184 tests PASS. Hanya dokumentasi review; kode/dependency/model desktop tetap.
+  Detail dan perintah native: docs/model-baseline-review.md.
+- Usulan commit: `mencatat baseline kualitas dan verifikasi model pembanding`.
+  Belum commit/push. Menunggu smoke dan laporan evaluasi 1.7B pengguna.
+
+## Checkpoint sebelumnya — E2
 
 - E1 sudah di-commit 0d699c5. Baseline native tersedia baru tiga kasus; full
   suite 10 kasus menunggu terminal pengguna sebelum perbandingan kandidat.
@@ -386,7 +402,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E2: `menyiapkan kandidat model pembanding Qwen3 1.7B`.
+Usulan pesan commit E3: `mencatat baseline kualitas dan verifikasi model pembanding`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review checkpoint E2 sebelum langkah load/benchmark kandidat berikutnya.
+Tunggu hasil native/review E3 sebelum keputusan kandidat atau perubahan berikutnya.

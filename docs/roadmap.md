@@ -29,6 +29,10 @@ agar file/revision/checksum dan kompatibilitas dapat diperiksa terlebih dahulu.
 berpin (184 tests PASS). Baseline full suite, unduhan dan load kandidat pending;
 tidak mengubah model utama. Panduan: qwen17-experiment.md.
 
+2026-11-02: E2 di-commit. E3 memverifikasi weights kandidat dan mereview baseline
+10 kasus (penilaian manual asisten 9/20). Native load/evaluasi 1.7B menunggu
+terminal pengguna karena socket sesi asisten ditolak. Tidak ada perubahan fitur.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

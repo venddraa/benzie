@@ -125,3 +125,10 @@ awal Q4_K_M belum menjadi artefak pilihan. Eksperimen berikutnya memakai Q8_0
 resmi, mempertahankan quant sama dengan baseline. Pin/sumber dan script setup
 manual: [qwen17-experiment.md](qwen17-experiment.md). Belum mengunduh, memuat,
 atau mengukur kandidat pada sesi asisten; baseline 10 kasus tetap perlu dulu.
+
+## Pembaruan E3 — 2026-11-02
+
+Baseline lengkap pengguna sudah ditemukan: 10 kasus generated, review manual
+asisten 9/20. Kandidat 1.7B Q8_0 tersedia dan checksum cocok. Native smoke masih
+gagal membuka socket sesi asisten; menunggu terminal pengguna.
+[Review dan langkah berikutnya](model-baseline-review.md).
