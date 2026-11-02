@@ -3,9 +3,28 @@
 Terakhir diperbarui: 2026-11-02.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E3 — review baseline dan verifikasi kandidat**, atas permintaan pengguna.
+Aktif: **E4 — review perbandingan pertama**, menunggu review checkpoint.
 
-## Checkpoint terbaru — E3
+## Checkpoint terbaru — E4
+
+- E3 di-commit 71e533e. Pengguna menjalankan smoke 1.7B PASS (satu startup
+  5,23 s, respons dan cleanup), kemudian evaluasi 10 kasus tanpa error.
+- Laporan kandidat evaluation-20261102T083108163443Z.json dibaca langsung.
+  Hash model cocok pin; suite/system prompt/runtime/parameter/kasus sama
+  dengan baseline. Python/kernel dan tekanan memori berbeda.
+- Review manual asisten: 0.6B 9/20, 1.7B 11/20. JSON/kejujuran akses file
+  membaik, tetapi premis RAG salah/aritmetika gagal dan jumlah klub dikarang.
+  Belum memilih 1.7B sebagai model utama.
+- 1.7B median load 1,704 s, TTFT 3,829 s, decode 15,58 tok/s, peak RSS child
+  2.055,84 MiB. Available RAM lebih rendah dan swap used sistem jauh lebih
+  tinggi; belum perbandingan performance terkontrol. Detail dan rubrik:
+  docs/model-comparison-first-pass.md.
+- Checkpoint dokumentasi saja, tidak mengubah model desktop, kode/dependency,
+  prompt, atau sampling. Tes kode terakhir 184 PASS.
+- Usulan commit: `mencatat perbandingan awal model lokal`.
+  Belum commit/push. Tunggu review sebelum eksperimen berikutnya.
+
+## Checkpoint sebelumnya — E3
 
 - E2 di-commit 0edcae1. Baseline lengkap ditemukan pada laporan pengguna
   evaluation-20261020T160004146747Z.json: 10/10 generated, complete=true.
@@ -402,7 +421,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E3: `mencatat baseline kualitas dan verifikasi model pembanding`.
+Usulan pesan commit E4: `mencatat perbandingan awal model lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu hasil native/review E3 sebelum keputusan kandidat atau perubahan berikutnya.
+Tunggu review E4 sebelum pengulangan benchmark atau keputusan kandidat berikutnya.

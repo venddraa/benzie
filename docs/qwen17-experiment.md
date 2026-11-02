@@ -75,3 +75,7 @@ download. Tidak memulai memory/RAG/voice atau fine-tuning.
 Pembaruan 2026-11-02: unduhan sudah tersedia dan checksum cocok. Baseline
 lengkap juga tersedia. Native load kandidat belum terverifikasi karena socket
 sesi asisten ditolak. Lanjutkan [review baseline E3](model-baseline-review.md).
+
+Pembaruan E4: pengguna sudah menjalankan smoke dan evaluasi 10 kasus 1.7B,
+keduanya tanpa error runtime. [Review perbandingan](model-comparison-first-pass.md)
+mencatat hasil dan batas pengukuran. Belum mengubah model utama Benzie.

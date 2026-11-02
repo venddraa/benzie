@@ -33,6 +33,10 @@ tidak mengubah model utama. Panduan: qwen17-experiment.md.
 10 kasus (penilaian manual asisten 9/20). Native load/evaluasi 1.7B menunggu
 terminal pengguna karena socket sesi asisten ditolak. Tidak ada perubahan fitur.
 
+2026-11-02 E4: smoke/evaluasi 1.7B native pengguna PASS; review manual 11/20
+vs baseline 9/20. Performance diukur pada kondisi RAM/swap berbeda. Hasil
+didokumentasikan, tidak memilih model utama atau mengunduh kandidat berikutnya.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

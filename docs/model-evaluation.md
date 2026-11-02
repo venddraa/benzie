@@ -132,3 +132,10 @@ Baseline lengkap pengguna sudah ditemukan: 10 kasus generated, review manual
 asisten 9/20. Kandidat 1.7B Q8_0 tersedia dan checksum cocok. Native smoke masih
 gagal membuka socket sesi asisten; menunggu terminal pengguna.
 [Review dan langkah berikutnya](model-baseline-review.md).
+
+## Pembaruan E4 — 2026-11-02
+
+Smoke dan evaluasi 1.7B native pengguna PASS. Review manual pertama 11/20
+dibanding baseline 9/20; belum layak dipilih sebagai model utama dari bukti ini.
+Kondisi RAM/swap, kernel, dan Python berbeda, jadi angka performance belum
+perbandingan terkontrol. [Hasil berdampingan](model-comparison-first-pass.md).
