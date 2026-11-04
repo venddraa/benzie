@@ -90,7 +90,7 @@ def test_failed_insert_rolls_back_conversation_update_and_hides_raw_error(store)
         connection.execute("""CREATE TRIGGER reject_message BEFORE INSERT ON messages
                               BEGIN SELECT RAISE(ABORT, 'private detail'); END""")
     with pytest.raises(DatabaseError) as caught:
-        store.append_message(conversation.id, "user", "private prompt")
+        store.append_message(conversation.id, "user", "private prompt", initial_title="Judul jangan tersimpan")
     assert "private" not in str(caught.value)
     assert store.get_conversation(conversation.id) == conversation
     assert store.list_messages(conversation.id) == []
@@ -128,3 +128,20 @@ def test_operations_release_database_lock(store):
     with closing(sqlite3.connect(store.path, timeout=0)) as connection:
         connection.execute("BEGIN EXCLUSIVE")
         connection.rollback()
+
+
+def test_custom_title_and_existing_history_are_not_renamed(store):
+    custom = store.create_conversation("Judul pilihan sendiri")
+    store.append_message(custom.id, "user", "Pesan pertama", initial_title="Judul otomatis")
+    assert store.get_conversation(custom.id).title == "Judul pilihan sendiri"
+    old = store.create_conversation()
+    store.append_message(old.id, "user", "Riwayat dari versi lama")
+    store.append_message(old.id, "user", "Pesan baru", initial_title="Judul otomatis")
+    assert store.get_conversation(old.id).title == "Percakapan baru"
+
+
+def test_default_title_matching_first_message_is_still_only_set_once(store):
+    conversation = store.create_conversation()
+    store.append_message(conversation.id, "user", "Percakapan baru", initial_title="Percakapan baru")
+    store.append_message(conversation.id, "user", "Jangan ganti judul", initial_title="Judul berbeda")
+    assert store.get_conversation(conversation.id).title == "Percakapan baru"

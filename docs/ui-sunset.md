@@ -47,3 +47,6 @@ entry point/checkout sama. Tidak mengubah model atau konfigurasinya.
 File utama: ui/main_window.py (layout), ui/chat_widgets.py (composer/transcript),
 ui/theme.py (stylesheet kecil), ui/model_dialog.py (label tombol).
 Preview development berada di /tmp, tidak masuk Git. README tetap benzie.
+
+Pembaruan UI2: percakapan baru kini memakai judul dari pesan pertama, tanpa
+LLM atau rename history lama. [Perilaku dan manual test](ui-conversation-titles.md).

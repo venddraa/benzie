@@ -87,7 +87,8 @@ class ConversationStore:
             return [Conversation(*row) for row in rows]
 
     def append_message(
-        self, conversation_id: int, role: str, content: str, *, status: str = "completed"
+        self, conversation_id: int, role: str, content: str, *, status: str = "completed",
+        initial_title: str | None = None,
     ) -> Message:
         if role not in ("user", "assistant"):
             raise ValueError("Role pesan tidak didukung.")
@@ -95,11 +96,21 @@ class ConversationStore:
             raise ValueError("Status pesan tidak didukung.")
         if not isinstance(content, str) or (status == "completed" and not content.strip()):
             raise ValueError("Pesan selesai tidak boleh kosong.")
+        if initial_title is not None:
+            if role != "user" or not isinstance(initial_title, str) or not initial_title.strip():
+                raise ValueError("Judul awal hanya untuk pesan pengguna dan tidak boleh kosong.")
+            initial_title = initial_title.strip()
         now = _timestamp()
         with self._connection() as connection:
-            # UPDATE dan INSERT berada dalam satu transaksi: keduanya berhasil atau rollback.
+            # Aktivitas, judul awal, dan pesan disimpan dalam transaksi yang sama.
             cursor = connection.execute(
-                "UPDATE conversations SET updated_at = ? WHERE id = ?", (now, conversation_id)
+                """UPDATE conversations SET updated_at = ?, title = CASE
+                    WHEN ? IS NOT NULL AND title = 'Percakapan baru'
+                         AND NOT EXISTS(SELECT 1 FROM messages
+                                        WHERE conversation_id = ? AND role = 'user')
+                    THEN ? ELSE title END
+                   WHERE id = ?""",
+                (now, initial_title, conversation_id, initial_title, conversation_id),
             )
             if cursor.rowcount != 1:
                 raise DatabaseError("Percakapan tidak ditemukan.")

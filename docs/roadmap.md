@@ -51,6 +51,10 @@ perapian UI sunset (sidebar/chat/composer multiline). 196 tests PASS dan
 preview offscreen diperiksa; commit disetujui pengguna, manual Fedora pending. Tetap
 PySide6 Widgets, tanpa fitur memory/RAG atau perubahan model.
 
+2026-11-04 UI2: judul lokal untuk percakapan baru dari pesan pertama, simpan
+atomik bersama pesan. History lama/judul khusus tidak diganti. 203 tests PASS;
+manual/review pending. Eksperimen sampling tetap ditunda.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

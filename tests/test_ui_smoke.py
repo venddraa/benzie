@@ -66,6 +66,8 @@ def test_chat_streams_literal_text_and_accepts_next_message(monkeypatch, tmp_pat
         assert "<b>Halo</b>" in window.chat_history.toPlainText()
         assert "Halo <i>literal</i>" in window.chat_history.toPlainText()
         assert window._history.messages(window._conversation_id)[0].content == "Halo <i>literal</i>\nBaris kedua"
+        assert window.conversation_title.text() == "Halo <i>literal</i>"
+        assert window.conversation_list.currentItem().text().startswith("Halo <i>literal</i>\n")
         assert window.message_input.isEnabled()
         assert window.model_button.isEnabled()
         window.message_input.setPlainText("Pesan kedua")

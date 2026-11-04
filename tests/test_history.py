@@ -30,6 +30,7 @@ def test_request_saved_after_cleanup(tmp_path):
     assert engine.closed
     assert [(m.role, m.content, m.status) for m in service.messages(cid)] == [
         ("user", "Hai", "completed"), ("assistant", "Halo", "completed")]
+    assert service.store.get_conversation(cid).title == "Hai"
 
 
 def test_cancel_keeps_partial_response(tmp_path):
@@ -53,6 +54,7 @@ def test_cancel_before_start_is_persisted(tmp_path):
     with pytest.raises(InferenceCancelled):
         list(request.events())
     assert service.messages(cid)[-1].status == "cancelled"
+    assert service.store.get_conversation(cid).title == "Hai"
 
 
 def test_inference_failure_saved_without_raw_exception(tmp_path):
@@ -121,3 +123,24 @@ def test_failed_cancelled_and_orphan_turns_are_excluded(tmp_path):
     assert completed_turns(service.messages(cid)) == [
         {"role": "user", "content": "yang selesai"},
         {"role": "assistant", "content": "jawaban selesai"}]
+
+
+@pytest.mark.parametrize("prompt,expected", [
+    ("\n  Ide\t untuk   Benzie\nDetail panjang tetap di pesan.", "Ide untuk Benzie"),
+    ("Belajar Python 🐈", "Belajar Python 🐈"),
+    ("a" * 60, "a" * 60),
+    ("a" * 61, "a" * 59 + "…"),
+])
+def test_title_is_short_and_uses_first_nonempty_line(prompt, expected):
+    from benzie.core.history import title_from_prompt
+    assert title_from_prompt(prompt) == expected
+
+
+def test_title_survives_reopening_and_is_not_replaced_by_next_message(tmp_path):
+    service, cid = history(tmp_path, Engine())
+    prompt = "Jelaskan Python\nIni detail yang tetap tersimpan."
+    list(service.new_request(prompt, cid).events())
+    reopened = HistoryService(service.store.path, service.chat)
+    list(reopened.new_request("Sekarang jelaskan SQLite", cid).events())
+    assert reopened.store.get_conversation(cid).title == "Jelaskan Python"
+    assert reopened.messages(cid)[0].content == prompt

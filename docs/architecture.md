@@ -9,6 +9,12 @@ user/model selalu insertText literal tanpa HTML/link/resource loading.
 Pemilihan model/cancel/history tetap melalui core/worker yang sama. Tidak ada
 perubahan database, protocol inference, atau dependency untuk tema.
 
+UI2: core/history.py menurunkan judul maksimal 60 karakter dari baris pertama
+pesan user. Store menerima initial_title pada append_message dan hanya memakai
+judul itu jika judul masih default dan belum ada pesan user. Judul/aktivitas/
+pesan berada dalam transaksi sama; schema tidak berubah. UI refresh heading
+sesudah worker selesai, tanpa SQL atau pemanggilan model untuk membuat judul.
+
 M5.2 menambahkan installer shortcut development scripts/desktop_launcher.py.
 Desktop entry per-user menunjuk interpreter .venv absolut (tanpa resolve
 symlink interpreter agar venv tetap berlaku), argumen -m benzie, Terminal=false,

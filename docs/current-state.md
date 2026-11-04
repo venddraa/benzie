@@ -3,9 +3,23 @@
 Terakhir diperbarui: 2026-11-04.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **UI1 — tema sunset dan perapian chat**, atas permintaan pengguna.
+Aktif: **UI2 — judul percakapan**, menunggu review/manual pengguna.
 
-## Checkpoint terbaru — UI1
+## Checkpoint terbaru — UI2
+
+- UI1 di-commit pengguna sebagai 0d8a4b8 (`uiiii`), worktree bersih sebelum UI2.
+- Percakapan baru diberi judul dari baris pertama pesan pengguna, maksimal
+  60 karakter. Pemrosesan lokal tanpa LLM; isi pesan tidak dipotong/diubah.
+- Update judul awal dan insert pesan atomik. Pesan lanjutan, judul khusus,
+  serta history lama yang sudah berisi pesan tidak diganti otomatis.
+- Sidebar/header diperbarui setelah worker selesai; judul bertahan setelah
+  restart. SQLite tetap skema 2; core/UI terpisah, tanpa dependency baru.
+- 203 tests PASS. Manual desktop masih pending. Detail dan checklist:
+  docs/ui-conversation-titles.md. Eksperimen sampling tetap ditunda.
+- Usulan commit: `menambah judul otomatis percakapan lokal`.
+  Belum commit/push; berhenti menunggu review.
+
+## Checkpoint sebelumnya — UI1
 
 - E6 di-commit 3ead07e. Pengguna memprioritaskan UI/UX sebelum eksperimen model
   berikutnya. Tema sunset cream/peach/oren, sidebar percakapan, header model,
@@ -472,7 +486,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit UI1: `merapikan tampilan chat dengan tema sunset`.
+Usulan pesan commit UI2: `menambah judul otomatis percakapan lokal`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review UI1. Eksperimen sampling ditunda sesuai prioritas pengguna.
+Tunggu review UI2. Eksperimen sampling ditunda sesuai prioritas pengguna.

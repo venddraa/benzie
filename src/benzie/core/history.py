@@ -8,6 +8,13 @@ from benzie.inference.engine import InferenceCancelled
 from benzie.persistence.conversations import ConversationStore
 
 
+def title_from_prompt(prompt: str) -> str:
+    """Judul lokal maksimal 60 karakter dari baris pertama yang tidak kosong."""
+    line = next((line for line in prompt.splitlines() if line.strip()), "")
+    title = " ".join(line.split())
+    return title if len(title) <= 60 else title[:59].rstrip() + "…"
+
+
 def completed_turns(messages):
     """Hanya pasangan user/assistant selesai; abaikan turn gagal/parsial/yatim."""
     result = []
@@ -58,7 +65,8 @@ class SavedRequest:
     def events(self):
         self.request.set_history(completed_turns(self.store.list_messages(self.conversation_id)))
         # Simpan input sebelum inference. Jika gagal, jangan mulai model.
-        self.store.append_message(self.conversation_id, "user", self.prompt)
+        self.store.append_message(self.conversation_id, "user", self.prompt,
+                                  initial_title=title_from_prompt(self.prompt))
         parts = []
         status = "failed"
         try:

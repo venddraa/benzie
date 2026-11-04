@@ -360,6 +360,7 @@ class MainWindow(QMainWindow):
             return
         try:
             self._refresh_conversations()
+            self._update_conversation_view()
         except DatabaseError as error:
             self._storage_error(str(error))
             return
