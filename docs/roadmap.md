@@ -59,6 +59,10 @@ manual/review pending. Eksperimen sampling tetap ditunda.
 dengan marker dan batas sesi terlihat. Tidak menulis draf ke history atau model.
 206 tests PASS; manual/review pending. Sampling tetap ditunda.
 
+2026-11-04 UI4: ubah judul history aktif via sidebar/F2 setelah pesan pertama.
+Pesan/draf tetap, title/updated_at disimpan atomik. 219 tests PASS dan preview
+minimum diperiksa; manual/review pending. Tidak mengubah model/sampling.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

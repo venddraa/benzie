@@ -1,8 +1,11 @@
 """Presentasi chat teks; SQL dan runtime ditangani di luar widget."""
 
+from html import escape
+
 from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-                              QMainWindow, QPushButton, QSplitter, QStackedWidget,
+                              QInputDialog, QMainWindow, QPushButton, QSplitter, QStackedWidget,
                               QVBoxLayout, QWidget)
 
 from benzie.core.chat import ChatService
@@ -55,7 +58,19 @@ class MainWindow(QMainWindow):
         section = QLabel("PERCAKAPAN")
         section.setObjectName("sectionLabel")
         side.addSpacing(8)
-        side.addWidget(section)
+        section_row = QHBoxLayout()
+        section_row.addWidget(section, 1)
+        self.rename_button = QPushButton("Ubah judul")
+        self.rename_button.setObjectName("renameConversation")
+        self.rename_button.setToolTip("Ubah judul percakapan (F2), setelah pesan pertama dikirim")
+        self.rename_button.clicked.connect(self._rename_conversation)
+        section_row.addWidget(self.rename_button)
+        side.addLayout(section_row)
+        self.rename_action = QAction("Ubah judul percakapan", self)
+        self.rename_action.setShortcut("F2")
+        self.rename_action.setShortcutContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        self.rename_action.triggered.connect(self._rename_conversation)
+        self.addAction(self.rename_action)
         self.conversation_list = QListWidget()
         self.conversation_list.setAccessibleName("Riwayat percakapan")
         self.conversation_list.setTextElideMode(Qt.TextElideMode.ElideRight)
@@ -203,11 +218,14 @@ class MainWindow(QMainWindow):
             self.conversation_list.clear()
             selected = 0
             for conversation in conversations:
-                title = conversation.title if conversation.title != "Percakapan baru" else f"Percakapan {conversation.id}"
+                title = conversation.title
                 item = QListWidgetItem(f"{title}\n{conversation.updated_at[:10]}")
                 item.setData(Qt.ItemDataRole.UserRole, conversation.id)
                 item.setData(Qt.ItemDataRole.UserRole + 1, title)
-                item.setData(Qt.ItemDataRole.UserRole + 2, conversation.updated_at[:10])
+                date = conversation.updated_at[:10]
+                if title == "Percakapan baru":
+                    date += f" · #{conversation.id}"
+                item.setData(Qt.ItemDataRole.UserRole + 2, date)
                 self._update_draft_badge(item)
                 self.conversation_list.addItem(item)
                 if conversation.id == self._conversation_id:
@@ -222,7 +240,8 @@ class MainWindow(QMainWindow):
         date = item.data(Qt.ItemDataRole.UserRole + 2)
         has_draft = conversation_id in self._drafts
         item.setText(f"{title}\n{date}" + (" · Draf" if has_draft else ""))
-        item.setToolTip(title + ("\nDraf belum dikirim; hanya tersimpan selama aplikasi terbuka." if has_draft else ""))
+        note = "<br>Draf belum dikirim; hanya tersimpan selama aplikasi terbuka." if has_draft else ""
+        item.setToolTip("<qt>" + escape(title) + note + "</qt>")
 
     @Slot()
     def _remember_draft(self):
@@ -242,6 +261,31 @@ class MainWindow(QMainWindow):
         self.chat_pages.setCurrentIndex(0 if self.chat_history.document().isEmpty() else 1)
         self.welcome_detail.setText("Mulai percakapan dengan model lokal pilihanmu." if self._service is not None
                                     else "Pilih model lokal untuk mulai mengobrol.")
+        self._update_send()
+
+    @Slot()
+    def _rename_conversation(self):
+        if (self._worker is not None or self._storage_failed or self._close_pending
+                or self._conversation_id is None or self.chat_history.document().isEmpty()):
+            return
+        title, accepted = QInputDialog.getText(
+            self, "Ubah judul", "Judul percakapan (maks. 60 karakter):",
+            text=self.conversation_title.text(),
+        )
+        if not accepted:
+            return
+        try:
+            self._history.rename_conversation(self._conversation_id, title)
+            self._refresh_conversations()
+            self._update_conversation_view()
+        except ValueError as error:
+            self.statusBar().showMessage(str(error))
+            return
+        except DatabaseError as error:
+            self._storage_error(str(error))
+            return
+        self.statusBar().showMessage("Judul percakapan disimpan.")
+        self.message_input.setFocus()
 
     @Slot()
     def _new_conversation(self):
@@ -300,6 +344,11 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _update_send(self) -> None:
+        can_rename = (self._conversation_id is not None and self._worker is None
+                      and not self._storage_failed and not self._close_pending
+                      and not self.chat_history.document().isEmpty())
+        self.rename_button.setEnabled(can_rename)
+        self.rename_action.setEnabled(can_rename)
         self.send_button.setEnabled(
             self._service is not None and self._worker is None
             and bool(self.message_input.toPlainText().strip()) and not self._close_pending

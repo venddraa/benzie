@@ -20,6 +20,11 @@ percakapan awal dibuat). Perubahan input memperbarui state/marker sidebar,
 navigasi memulihkan input target. Kirim menghapus draf target. State ini tidak
 masuk database, log, atau prompt dan berakhir bersama sesi aplikasi.
 
+UI4: HistoryService.rename_conversation meneruskan edit title ke store, yang
+memperbarui title/updated_at transaksional setelah ada pesan user. UI tombol/F2
+dengan validasi, tanpa SQL di widget atau perubahan pesan/draf. Tooltip judul
+memakai template Qt berisi teks yang sudah di-escape. Tidak ada migrasi baru.
+
 M5.2 menambahkan installer shortcut development scripts/desktop_launcher.py.
 Desktop entry per-user menunjuk interpreter .venv absolut (tanpa resolve
 symlink interpreter agar venv tetap berlaku), argumen -m benzie, Terminal=false,

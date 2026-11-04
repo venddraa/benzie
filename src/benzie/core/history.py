@@ -46,6 +46,9 @@ class HistoryService:
     def messages(self, conversation_id: int):
         return self.store.list_messages(conversation_id)
 
+    def rename_conversation(self, conversation_id: int, title: str):
+        self.store.rename_conversation(conversation_id, title)
+
     def new_request(self, prompt: str, conversation_id: int):
         if self.chat is None:
             raise ValueError("Belum ada model dipilih.")

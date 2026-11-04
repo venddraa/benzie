@@ -3,9 +3,24 @@
 Terakhir diperbarui: 2026-11-04.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **UI3 — menjaga draf selama sesi**, menunggu review/manual pengguna.
+Aktif: **UI4 — ubah judul percakapan**, menunggu review/manual pengguna.
 
-## Checkpoint terbaru — UI3
+## Checkpoint terbaru — UI4
+
+- UI3 di-commit d09cabe. Sidebar memiliki Ubah judul dan shortcut F2 untuk
+  history aktif yang sudah memiliki pesan. Tetap tersedia tanpa model, dikunci
+  ketika generation/close/storage bermasalah.
+- Judul manual 1–60 karakter; whitespace dinormalisasi. Cancel/input invalid
+  mempertahankan judul lama. Update title/updated_at transaksional tanpa mengubah
+  pesan/draf. Skema SQLite tetap 2, tidak ada dependency baru.
+- Judul ditampilkan literal; tooltip judul di-escape sebelum template Qt.
+  Nama default ditampilkan apa adanya dan ID ada pada baris tanggal.
+- 219 tests PASS; preview offscreen minimum diperiksa. Manual desktop pending.
+  Panduan: docs/ui-rename-conversation.md. Model/sampling tetap tidak berubah.
+- Usulan commit: `menambah pengubahan judul percakapan`.
+  Belum commit/push; berhenti menunggu review/manual pengguna.
+
+## Checkpoint sebelumnya — UI3
 
 - UI2 di-commit 26c79b9, worktree bersih sebelum UI3.
 - Input belum terkirim dipertahankan per percakapan saat pindah/new; marker
@@ -500,7 +515,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit UI3: `menjaga draf pesan saat berpindah percakapan`.
+Usulan pesan commit UI4: `menambah pengubahan judul percakapan`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review UI3. Eksperimen sampling ditunda sesuai prioritas pengguna.
+Tunggu review UI4. Eksperimen sampling ditunda sesuai prioritas pengguna.

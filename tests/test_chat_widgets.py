@@ -100,3 +100,65 @@ def test_sidebar_keyboard_navigation_and_empty_state(app, tmp_path):
         assert window.cancel_button.isHidden()
     finally:
         window.close()
+
+
+@pytest.mark.parametrize("new_title", ["Catatan <b>uji</b>", "Percakapan baru"])
+def test_manual_rename_updates_sidebar_header_and_keeps_draft_and_messages(app, tmp_path, monkeypatch, new_title):
+    from html import escape
+    state = initialize_application(tmp_path)
+    store = ConversationStore(state.database_path)
+    conversation = store.create_conversation("Judul awal")
+    message = store.append_message(conversation.id, "user", "Pesan tersimpan")
+    window = MainWindow(state)
+    monkeypatch.setattr("benzie.ui.main_window.QInputDialog.getText",
+                        lambda *args, **kwargs: ("  " + new_title + "  ", True))
+    try:
+        window.message_input.setPlainText("Draf masih ada\nBaris kedua")
+        assert window.rename_button.isEnabled()  # History dapat diubah tanpa model.
+        window.rename_button.click()
+        assert window.conversation_title.text() == new_title
+        assert window.conversation_list.currentItem().text().startswith(new_title + "\n")
+        tooltip = window.conversation_list.currentItem().toolTip()
+        assert escape(new_title) in tooltip and "<b>uji</b>" not in tooltip
+        assert window.message_input.toPlainText() == "Draf masih ada\nBaris kedua"
+        assert store.list_messages(conversation.id) == [message]
+    finally:
+        window.close()
+    reopened = MainWindow(state)
+    try:
+        assert reopened.conversation_title.text() == new_title
+        assert "Pesan tersimpan" in reopened.chat_history.toPlainText()
+    finally:
+        reopened.close()
+
+
+@pytest.mark.parametrize("title,accepted", [("Judul baru", False), ("   ", True), ("a" * 61, True)])
+def test_cancel_or_invalid_rename_preserves_existing_ui_and_storage(app, tmp_path, monkeypatch, title, accepted):
+    state = initialize_application(tmp_path)
+    store = ConversationStore(state.database_path)
+    conversation = store.create_conversation("Judul lama")
+    store.append_message(conversation.id, "user", "Pesan")
+    before = store.get_conversation(conversation.id)
+    window = MainWindow(state)
+    monkeypatch.setattr("benzie.ui.main_window.QInputDialog.getText",
+                        lambda *args, **kwargs: (title, accepted))
+    try:
+        window.rename_action.trigger()
+        assert store.get_conversation(conversation.id) == before
+        assert window.conversation_title.text() == "Judul lama"
+        assert not window._storage_failed
+    finally:
+        window.close()
+
+
+def test_rename_disabled_for_empty_conversation(app, tmp_path, monkeypatch):
+    def unexpected(*args, **kwargs): raise AssertionError("Dialog tidak boleh terbuka")
+    monkeypatch.setattr("benzie.ui.main_window.QInputDialog.getText", unexpected)
+    window = MainWindow(initialize_application(tmp_path))
+    try:
+        window.new_button.click()
+        assert not window.rename_button.isEnabled()
+        assert not window.rename_action.isEnabled()
+        window._rename_conversation()
+    finally:
+        window.close()

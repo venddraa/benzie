@@ -62,6 +62,8 @@ def test_chat_streams_literal_text_and_accepts_next_message(monkeypatch, tmp_pat
         window.send_button.click()
         assert not window.message_input.isEnabled()
         assert not window.model_button.isEnabled()
+        assert not window.rename_button.isEnabled()
+        assert not window.rename_action.isEnabled()
         wait_for(app, lambda: window._worker is None)
         assert "<b>Halo</b>" in window.chat_history.toPlainText()
         assert "Halo <i>literal</i>" in window.chat_history.toPlainText()

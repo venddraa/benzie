@@ -145,3 +145,47 @@ def test_default_title_matching_first_message_is_still_only_set_once(store):
     store.append_message(conversation.id, "user", "Percakapan baru", initial_title="Percakapan baru")
     store.append_message(conversation.id, "user", "Jangan ganti judul", initial_title="Judul berbeda")
     assert store.get_conversation(conversation.id).title == "Percakapan baru"
+
+
+def test_rename_preserves_messages_and_survives_reopening(store):
+    conversation = store.create_conversation()
+    message = store.append_message(conversation.id, "user", "Pesan awal", initial_title="Judul awal")
+    store.rename_conversation(conversation.id, "  Belajar\t SQLite  ")
+    reopened = ConversationStore(store.path)
+    assert reopened.get_conversation(conversation.id).title == "Belajar SQLite"
+    assert reopened.list_messages(conversation.id) == [message]
+    store.append_message(conversation.id, "user", "Lanjutan", initial_title="Tidak mengganti")
+    assert store.get_conversation(conversation.id).title == "Belajar SQLite"
+
+
+@pytest.mark.parametrize("title", ["", " \n ", "a" * 61, None])
+def test_invalid_rename_preserves_title_and_activity(store, title):
+    conversation = store.create_conversation("Judul lama")
+    store.append_message(conversation.id, "user", "Pesan")
+    before = store.get_conversation(conversation.id)
+    with pytest.raises(ValueError):
+        store.rename_conversation(conversation.id, title)
+    assert store.get_conversation(conversation.id) == before
+
+
+def test_empty_conversation_cannot_be_renamed_until_first_message(store):
+    conversation = store.create_conversation()
+    with pytest.raises(ValueError, match="pesan pertama"):
+        store.rename_conversation(conversation.id, "Nama manual")
+    assert store.get_conversation(conversation.id) == conversation
+    with pytest.raises(DatabaseError, match="tidak ditemukan"):
+        store.rename_conversation(999, "Judul")
+
+
+def test_failed_rename_rolls_back_title_and_activity(store):
+    conversation = store.create_conversation("Judul tetap")
+    message = store.append_message(conversation.id, "user", "Pesan tetap")
+    before = store.get_conversation(conversation.id)
+    with closing(sqlite3.connect(store.path)) as connection:
+        connection.execute("""CREATE TRIGGER reject_title BEFORE UPDATE OF title ON conversations
+                              BEGIN SELECT RAISE(ABORT, 'private detail'); END""")
+    with pytest.raises(DatabaseError) as caught:
+        store.rename_conversation(conversation.id, "Tidak tersimpan")
+    assert "private detail" not in str(caught.value)
+    assert store.get_conversation(conversation.id) == before
+    assert store.list_messages(conversation.id) == [message]

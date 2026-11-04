@@ -32,3 +32,7 @@ Manual: tutup window lama, buka Benzie, buat percakapan baru lalu kirim pesan
 multiline. Sidebar/header harus memakai baris pertama, bukan detail baris kedua.
 Kirim pesan lain lalu restart: judul awal tetap. History lama bisa tetap bernomor
 karena tidak diubah otomatis. Manual desktop checkpoint ini masih pending.
+
+Pembaruan UI4: history yang sudah memiliki pesan dapat diubah judulnya secara
+manual melalui sidebar/F2, tanpa ditimpa pesan berikutnya.
+[Perilaku dan validasi](ui-rename-conversation.md).

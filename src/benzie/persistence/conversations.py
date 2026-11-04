@@ -86,6 +86,23 @@ class ConversationStore:
             ).fetchall()
             return [Conversation(*row) for row in rows]
 
+    def rename_conversation(self, conversation_id: int, title: str) -> None:
+        if not isinstance(title, str):
+            raise ValueError("Judul harus berupa teks.")
+        title = " ".join(title.split())
+        if not title or len(title) > 60:
+            raise ValueError("Judul harus berisi 1–60 karakter.")
+        with self._connection() as connection:
+            cursor = connection.execute(
+                """UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?
+                   AND EXISTS(SELECT 1 FROM messages WHERE conversation_id = ? AND role = 'user')""",
+                (title, _timestamp(), conversation_id, conversation_id),
+            )
+            if cursor.rowcount != 1:
+                if connection.execute("SELECT 1 FROM conversations WHERE id = ?", (conversation_id,)).fetchone() is None:
+                    raise DatabaseError("Percakapan tidak ditemukan.")
+                raise ValueError("Kirim pesan pertama sebelum mengubah judul percakapan.")
+
     def append_message(
         self, conversation_id: int, role: str, content: str, *, status: str = "completed",
         initial_title: str | None = None,

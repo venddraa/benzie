@@ -22,6 +22,10 @@ QPushButton#sendButton:hover { background: #9E3914; }
 QPushButton#sendButton:disabled { color: #9F8A7B; background: #F2E8DE; border-color: #E6D8CC; }
 QPushButton#newConversation { background: #FFE0C6; color: #843B1D; border-color: #E8B896; text-align: left; }
 QPushButton#newConversation:hover { background: #FFD1AE; }
+QPushButton#renameConversation { background: transparent; border: 1px solid transparent; padding: 4px; font-size: 11px; color: #843B1D; }
+QPushButton#renameConversation:hover { background: #FFE0C6; }
+QPushButton#renameConversation:focus { border-color: #B9471B; }
+QPushButton#renameConversation:disabled { color: #9F8A7B; }
 QListWidget { background: transparent; border: none; outline: 0; }
 QListWidget::item { padding: 12px 10px; margin-bottom: 6px; border: 1px solid transparent; border-radius: 9px; }
 QListWidget::item:hover { background: #FFE6CE; }
