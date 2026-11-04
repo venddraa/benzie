@@ -146,3 +146,11 @@ Runner memakai evaluator yang sama untuk model berurutan, kontrol konsisten,
 serta ringkasan kondisi RAM/swap tiap run. Mulai satu pasangan dahulu;
 pengulangan tiga pasangan opsional setelahnya. Tidak mengklaim kondisi termal
 atau tekanan memori otomatis sama. [Panduan](paired-model-evaluation.md).
+
+## Pembaruan E6 — 2026-11-04
+
+Satu pasangan native lengkap: available RAM sekitar 9,5–9,7 GiB, swap used nol
+pada kedua snapshot. 1.7B TTFT 1,071 s dan decode 24,31 tok/s; kualitas tetap
+11/20 vs 9/20 karena jawaban sama dengan putaran sebelumnya. Belum memilih
+model utama. Rekomendasi eksperimen sampling terpisah, belum dilaksanakan.
+[Review, metrik, dan sumber sampling resmi](paired-model-review.md).

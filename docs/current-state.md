@@ -1,11 +1,30 @@
 # Status sekarang
 
-Terakhir diperbarui: 2026-11-02.
+Terakhir diperbarui: 2026-11-04.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E5 — runner evaluasi berpasangan**, menunggu uji native/review.
+Aktif: **E6 — review pasangan native pertama**, menunggu review checkpoint.
 
-## Checkpoint terbaru — E5
+## Checkpoint terbaru — E6
+
+- E5 di-commit a1c211b. Pengguna menjalankan satu pasangan A/B, masing-masing
+  10/10 generated, summary complete=true dan exit_code=0. Laporan lokal:
+  data/paired-20261104T150250609690Z/summary.json.
+- Ringkasan diverifikasi terhadap file individual: kontrol/parameter/runtime/
+  suite/system prompt/Python/platform sama. Available RAM 9,53 vs 9,70 GiB;
+  swap sistem terpakai 0 pada kedua snapshot. Satu pasangan, bukan tiga repeat.
+- Median TTFT 0.6B 0,346 s, 1.7B 1,071 s; decode 59,39 vs 24,31 tok/s.
+  Peak RSS child 909,37 vs 2.055,78 MiB. Bukan cold-cache/isolasi termal.
+- Semua jawaban identik dengan putaran sebelumnya. Review manual tetap 9/20
+  vs 11/20. Tidak menetapkan 1.7B sebagai model utama.
+- Rekomendasi eksperimen berikutnya: profil non-thinking resmi Qwen dengan
+  seed dan pengulangan. Belum diimplementasikan; bukan diagnosis bahwa sampling
+  menyebabkan kegagalan. Sumber dan batas: docs/paired-model-review.md.
+- Dokumentasi saja, kode/dependency/model desktop tetap; tes terakhir 192 PASS.
+- Usulan commit: `mencatat hasil evaluasi model berpasangan`.
+  Belum commit/push; tunggu review sebelum eksperimen sampling berikutnya.
+
+## Checkpoint sebelumnya — E5
 
 - E4 di-commit fff199c. Runner evaluate_model_pair.py menjalankan evaluator E1
   berurutan untuk kedua model, default satu pasangan 10 kasus per model.
@@ -434,7 +453,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E5: `menambah evaluasi model berpasangan`.
+Usulan pesan commit E6: `mencatat hasil evaluasi model berpasangan`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu hasil/review E5 sebelum keputusan kandidat atau perubahan berikutnya.
+Tunggu review E6 sebelum eksperimen sampling atau keputusan kandidat berikutnya.

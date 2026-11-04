@@ -41,6 +41,11 @@ didokumentasikan, tidak memilih model utama atau mengunduh kandidat berikutnya.
 native pending. Satu pasangan awal sebelum pengulangan lebih banyak. Tidak
 memilih model utama atau mengubah runtime/prompt/model desktop.
 
+2026-11-04 E6: pasangan native lengkap direview. RAM/swap sebelum kedua run
+lebih sebanding; 1.7B TTFT 1,071 s, decode 24,31 tok/s. Jawaban identik dengan
+sebelumnya, skor manual tetap 9/20 vs 11/20. Usulan eksperimen sampling resmi
+Qwen terpisah, belum diimplementasikan. Tidak menetapkan model utama.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

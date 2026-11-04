@@ -59,3 +59,7 @@ jangan menganggap urutan berpasangan otomatis menghasilkan perbandingan adil.
 kelengkapan, kontrol, dan preservasi output. Uji model native berpasangan masih
 menunggu terminal pengguna karena socket sesi asisten ditolak pada percobaan
 sebelumnya. Belum ada angka latency/RAM baru yang diklaim.
+
+Pembaruan E6: pengguna menjalankan pasangan native lengkap. Ringkasan/kondisi
+dan kualitas telah direview di [paired-model-review.md](paired-model-review.md).
+Ini satu pasangan, belum hasil tiga pasangan atau eksperimen sampling lain.
