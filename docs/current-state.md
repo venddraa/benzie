@@ -3,9 +3,28 @@
 Terakhir diperbarui: 2026-11-04.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **E6 — review pasangan native pertama**, menunggu review checkpoint.
+Aktif: **UI1 — tema sunset dan perapian chat**, atas permintaan pengguna.
 
-## Checkpoint terbaru — E6
+## Checkpoint terbaru — UI1
+
+- E6 di-commit 3ead07e. Pengguna memprioritaskan UI/UX sebelum eksperimen model
+  berikutnya. Tema sunset cream/peach/oren, sidebar percakapan, header model,
+  area chat berlabel dan empty state, composer multiline.
+- Enter mengirim, Shift+Enter baris baru. Batal hanya terlihat saat request
+  aktif. Kontrol model/history tetap dikunci selama generation. Scroll tidak
+  dipaksa turun saat pengguna membaca history lama.
+- QTextEdit memformat label aplikasi saja; konten user/model tetap teks literal.
+  Tidak memuat HTML, link aktif, atau image dari jawaban. SQLite/core/inference/
+  konfigurasi model tidak diubah. Tidak ada dependency baru.
+- 196 tests PASS. Preview offscreen data sintetis diperiksa pada ukuran normal
+  dan minimum, keadaan chat/kosong. Manual Fedora native masih pending.
+- Detail/manual: docs/ui-sunset.md. Tema light tunggal, tanpa auto-title atau
+  personalisasi tema. Eksperimen sampling ditunda, bukan diimplementasikan.
+- Usulan commit: `merapikan tampilan chat dengan tema sunset`.
+  Pengguna menyetujui commit/push checkpoint UI1. Manual Fedora terperinci belum
+  dikonfirmasi; jangan dianggap PASS hanya dari persetujuan push.
+
+## Checkpoint sebelumnya — E6
 
 - E5 di-commit a1c211b. Pengguna menjalankan satu pasangan A/B, masing-masing
   10/10 generated, summary complete=true dan exit_code=0. Laporan lokal:
@@ -453,7 +472,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit E6: `mencatat hasil evaluasi model berpasangan`.
+Usulan pesan commit UI1: `merapikan tampilan chat dengan tema sunset`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review E6 sebelum eksperimen sampling atau keputusan kandidat berikutnya.
+Tunggu review UI1. Eksperimen sampling ditunda sesuai prioritas pengguna.

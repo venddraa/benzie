@@ -46,6 +46,11 @@ lebih sebanding; 1.7B TTFT 1,071 s, decode 24,31 tok/s. Jawaban identik dengan
 sebelumnya, skor manual tetap 9/20 vs 11/20. Usulan eksperimen sampling resmi
 Qwen terpisah, belum diimplementasikan. Tidak menetapkan model utama.
 
+2026-11-04 UI1: atas permintaan pengguna, eksperimen sampling ditunda untuk
+perapian UI sunset (sidebar/chat/composer multiline). 196 tests PASS dan
+preview offscreen diperiksa; commit disetujui pengguna, manual Fedora pending. Tetap
+PySide6 Widgets, tanpa fitur memory/RAG atau perubahan model.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

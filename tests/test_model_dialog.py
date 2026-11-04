@@ -71,7 +71,7 @@ def test_model_selection_enables_chat_without_replacing_history(app, tmp_path, m
         cid = window._conversation_id
         window._history.store.append_message(cid, "user", "ancien message")
         window._open_conversation()
-        window.message_input.setText("Halo")
+        window.message_input.setPlainText("Halo")
         assert not window.send_button.isEnabled()
         window.model_button.click()
         assert window.send_button.isEnabled()

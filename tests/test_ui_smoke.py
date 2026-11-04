@@ -7,6 +7,7 @@ import time
 pytest.importorskip("PySide6", reason="PySide6 diperlukan untuk smoke test window")
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
 
 from benzie.core.startup import initialize_application
 from benzie.core.chat import ChatService
@@ -25,7 +26,7 @@ def test_window_opens_and_closes(monkeypatch, tmp_path):
         app.processEvents()
         assert window.isVisible()
         assert window.windowTitle() == "Benzie"
-        assert "SQLite siap" in window.statusBar().currentMessage()
+        assert "Pilih model lokal" in window.statusBar().currentMessage()
     finally:
         window.close()
         app.processEvents()
@@ -56,7 +57,7 @@ def test_chat_streams_literal_text_and_accepts_next_message(monkeypatch, tmp_pat
     window.show()
     try:
         assert not window.send_button.isEnabled()
-        window.message_input.setText("Halo <i>literal</i>")
+        window.message_input.setPlainText("Halo <i>literal</i>\nBaris kedua")
         assert window.send_button.isEnabled()
         window.send_button.click()
         assert not window.message_input.isEnabled()
@@ -64,9 +65,10 @@ def test_chat_streams_literal_text_and_accepts_next_message(monkeypatch, tmp_pat
         wait_for(app, lambda: window._worker is None)
         assert "<b>Halo</b>" in window.chat_history.toPlainText()
         assert "Halo <i>literal</i>" in window.chat_history.toPlainText()
+        assert window._history.messages(window._conversation_id)[0].content == "Halo <i>literal</i>\nBaris kedua"
         assert window.message_input.isEnabled()
         assert window.model_button.isEnabled()
-        window.message_input.setText("Pesan kedua")
+        window.message_input.setPlainText("Pesan kedua")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
         assert "Pesan kedua" in window.chat_history.toPlainText()
@@ -85,7 +87,7 @@ def test_error_restores_input(monkeypatch, tmp_path):
     window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(FailingEngine))
     window.show()
     try:
-        window.message_input.setText("Halo")
+        window.message_input.setPlainText("Halo")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
         assert "Model lokal gagal dimuat." in window.chat_history.toPlainText()
@@ -112,7 +114,7 @@ def test_close_cancels_worker_before_destroying_window(monkeypatch, tmp_path):
     window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(SlowEngine))
     window.show()
     try:
-        window.message_input.setText("Halo")
+        window.message_input.setPlainText("Halo")
         window.send_button.click()
         wait_for(app, started.is_set)
         window.close()
@@ -153,7 +155,7 @@ def test_cancel_preserves_partial_text_and_allows_next_request(monkeypatch, tmp_
     window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(Engine))
     window.show()
     try:
-        window.message_input.setText("Pertama")
+        window.message_input.setPlainText("Pertama")
         window.send_button.click()
         wait_for(app, lambda: blocked.is_set() and "Awal" in window.chat_history.toPlainText())
         assert window.cancel_button.isEnabled()
@@ -166,7 +168,7 @@ def test_cancel_preserves_partial_text_and_allows_next_request(monkeypatch, tmp_
         saved = window._history.messages(window._conversation_id)[-1]
         assert saved.status == "cancelled"
         assert saved.content == "Awal"
-        window.message_input.setText("Kedua")
+        window.message_input.setPlainText("Kedua")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
         assert "pesan kedua" in window.chat_history.toPlainText()
@@ -187,22 +189,24 @@ def test_history_reopens_switches_and_continues_without_model_context(monkeypatc
     state = initialize_application(tmp_path)
     window = MainWindow(state, chat_service=ChatService(Engine))
     try:
-        window.message_input.setText("pertama")
+        window.message_input.setPlainText("pertama")
         window.send_button.click()
         assert not window.new_button.isEnabled()
-        assert not window.conversation_picker.isEnabled()
+        assert not window.conversation_list.isEnabled()
         wait_for(app, lambda: window._worker is None)
         first = window._conversation_id
         assert window.new_button.isEnabled()
         window.new_button.click()
         assert not window.chat_history.toPlainText()
-        window.message_input.setText("kedua")
+        window.message_input.setPlainText("kedua")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
-        window.conversation_picker.setCurrentIndex(window.conversation_picker.findData(first))
+        row = next(i for i in range(window.conversation_list.count())
+                   if window.conversation_list.item(i).data(Qt.ItemDataRole.UserRole) == first)
+        window.conversation_list.setCurrentRow(row)
         assert "Jawaban pertama" in window.chat_history.toPlainText()
         assert "kedua" not in window.chat_history.toPlainText()
-        window.message_input.setText("lanjutan")
+        window.message_input.setPlainText("lanjutan")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
     finally:
@@ -231,7 +235,7 @@ def test_storage_failure_preserves_visible_text_and_blocks_sending(monkeypatch, 
         return append(cid, role, *args, **kwargs)
     monkeypatch.setattr(window._history.store, "append_message", fail)
     try:
-        window.message_input.setText("Halo")
+        window.message_input.setPlainText("Halo")
         window.send_button.click()
         wait_for(app, lambda: window._worker is None)
         assert "Jawaban penting" in window.chat_history.toPlainText()

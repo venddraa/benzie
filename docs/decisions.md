@@ -142,3 +142,11 @@ tidak tersedia pada revision resmi yang diperiksa. Quant sama dengan baseline
 memisahkan eksperimen ini dari perubahan tingkat quantization, tetapi ukuran
 RAM/weights tidak dibuat sama. Setup terpisah mematok revision dan SHA256;
 download tidak pernah dipanggil aplikasi. Tidak mengganti pilihan desktop.
+
+## 011 — UI sunset sederhana (2026-11-04)
+
+Pengguna menyetujui arah cream/peach/oren dan sidebar, memprioritaskan UI sebelum
+sampling. Gunakan Widgets yang sudah ada dan stylesheet kecil, tanpa framework
+atau font baru. Transcript QTextEdit memberi jarak/warna pada heading; isi
+tetap insertText agar HTML dari model tidak menjadi konten aktif. Composer
+multiline memakai Enter/Shift+Enter yang terlihat di petunjuk. Core tetap Qt-free.

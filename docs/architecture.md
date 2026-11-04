@@ -2,6 +2,13 @@
 
 Implementasi desktop/core/inference, history, dan konfigurasi model M5.1.
 
+UI1: layout sidebar QListWidget + area chat + composer QPlainTextEdit multiline.
+chat_widgets.py memisahkan widget presentasi/input shortcut dan transcript;
+theme.py berisi stylesheet sunset kecil. QTextEdit menata heading, tetapi isi
+user/model selalu insertText literal tanpa HTML/link/resource loading.
+Pemilihan model/cancel/history tetap melalui core/worker yang sama. Tidak ada
+perubahan database, protocol inference, atau dependency untuk tema.
+
 M5.2 menambahkan installer shortcut development scripts/desktop_launcher.py.
 Desktop entry per-user menunjuk interpreter .venv absolut (tanpa resolve
 symlink interpreter agar venv tetap berlaku), argumen -m benzie, Terminal=false,

@@ -38,6 +38,8 @@ class ModelDialog(QDialog):
         self.error_label.setWordWrap(True)
         layout.addRow(self.error_label)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons.button(QDialogButtonBox.StandardButton.Save).setText("Simpan")
+        buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("Batal")
         buttons.accepted.connect(self._save)
         buttons.rejected.connect(self.reject)
         layout.addRow(buttons)
