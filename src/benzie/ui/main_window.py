@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         self._settings_path = state.database_path.parent / "model-settings.json"
         self._history = HistoryService(state.database_path, chat_service)
         self._conversation_id = None
+        self._drafts: dict[int | None, str] = {}
         self._storage_failed = False
         self._worker: ChatWorker | None = None
         self._close_pending = False
@@ -60,7 +61,7 @@ class MainWindow(QMainWindow):
         self.conversation_list.setTextElideMode(Qt.TextElideMode.ElideRight)
         self.conversation_list.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         side.addWidget(self.conversation_list, 1)
-        privacy = QLabel("Riwayat tersimpan\ndi perangkat ini.")
+        privacy = QLabel("Riwayat tersimpan lokal.\nDraf hanya selama\naplikasi terbuka.")
         privacy.setObjectName("muted")
         side.addWidget(privacy)
         content.addWidget(sidebar)
@@ -158,6 +159,7 @@ class MainWindow(QMainWindow):
         self.cancel_button.clicked.connect(self._cancel)
         self.message_input.submitted.connect(self._send)
         self.message_input.textChanged.connect(self._update_send)
+        self.message_input.textChanged.connect(self._remember_draft)
         self.message_input.setEnabled(self._service is not None)
         self._update_send()
 
@@ -205,13 +207,33 @@ class MainWindow(QMainWindow):
                 item = QListWidgetItem(f"{title}\n{conversation.updated_at[:10]}")
                 item.setData(Qt.ItemDataRole.UserRole, conversation.id)
                 item.setData(Qt.ItemDataRole.UserRole + 1, title)
-                item.setToolTip(title)
+                item.setData(Qt.ItemDataRole.UserRole + 2, conversation.updated_at[:10])
+                self._update_draft_badge(item)
                 self.conversation_list.addItem(item)
                 if conversation.id == self._conversation_id:
                     selected = self.conversation_list.count() - 1
             self.conversation_list.setCurrentRow(selected if conversations else -1)
         finally:
             self.conversation_list.blockSignals(False)
+
+    def _update_draft_badge(self, item):
+        conversation_id = item.data(Qt.ItemDataRole.UserRole)
+        title = item.data(Qt.ItemDataRole.UserRole + 1)
+        date = item.data(Qt.ItemDataRole.UserRole + 2)
+        has_draft = conversation_id in self._drafts
+        item.setText(f"{title}\n{date}" + (" · Draf" if has_draft else ""))
+        item.setToolTip(title + ("\nDraf belum dikirim; hanya tersimpan selama aplikasi terbuka." if has_draft else ""))
+
+    @Slot()
+    def _remember_draft(self):
+        text = self.message_input.toPlainText()
+        if text.strip():
+            self._drafts[self._conversation_id] = text
+        else:
+            self._drafts.pop(self._conversation_id, None)
+        item = self.conversation_list.currentItem()
+        if item is not None and item.data(Qt.ItemDataRole.UserRole) == self._conversation_id:
+            self._update_draft_badge(item)
 
     def _update_conversation_view(self):
         item = self.conversation_list.currentItem()
@@ -226,11 +248,15 @@ class MainWindow(QMainWindow):
         if self._worker is not None or self._storage_failed:
             return
         try:
+            initial_draft = self.message_input.toPlainText() if self._conversation_id is None else ""
             conversation = self._history.new_conversation()
+            self._drafts.pop(None, None)
             self._conversation_id = conversation.id
+            if initial_draft.strip():
+                self._drafts[conversation.id] = initial_draft
             self._refresh_conversations()
             self.chat_history.clear()
-            self.message_input.clear()
+            self.message_input.setPlainText(initial_draft)
             self._update_conversation_view()
             self.message_input.setFocus()
         except DatabaseError as error:
@@ -250,7 +276,7 @@ class MainWindow(QMainWindow):
             self._storage_error(str(error))
             return
         self._conversation_id = selected
-        self.message_input.clear()
+        self.message_input.setPlainText(self._drafts.get(selected, ""))
         self.chat_history.clear()
         for message in messages:
             label = "Anda" if message.role == "user" else "Benzie"

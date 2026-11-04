@@ -55,6 +55,10 @@ PySide6 Widgets, tanpa fitur memory/RAG atau perubahan model.
 atomik bersama pesan. History lama/judul khusus tidak diganti. 203 tests PASS;
 manual/review pending. Eksperimen sampling tetap ditunda.
 
+2026-11-04 UI3: draf per percakapan selama sesi dipertahankan saat navigasi/new,
+dengan marker dan batas sesi terlihat. Tidak menulis draf ke history atau model.
+206 tests PASS; manual/review pending. Sampling tetap ditunda.
+
 M2 dibagi menjadi langkah kecil: lifecycle proses → setup runtime/model yang
 dipatok → health check dan prompt/response → benchmark. Masing-masing langkah
 diuji, dilaporkan, lalu pengguna dapat commit/push sebelum melanjutkan.

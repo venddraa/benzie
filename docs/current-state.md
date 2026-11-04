@@ -3,9 +3,23 @@
 Terakhir diperbarui: 2026-11-04.
 
 Status: **V0.1 selesai secara fungsional**, checkpoint penutup di-commit 9be42cd.
-Aktif: **UI2 — judul percakapan**, menunggu review/manual pengguna.
+Aktif: **UI3 — menjaga draf selama sesi**, menunggu review/manual pengguna.
 
-## Checkpoint terbaru — UI2
+## Checkpoint terbaru — UI3
+
+- UI2 di-commit 26c79b9, worktree bersih sebelum UI3.
+- Input belum terkirim dipertahankan per percakapan saat pindah/new; marker
+  Draf muncul pada sidebar. Input awal belum memiliki conversation ID juga
+  dipertahankan ketika tombol Percakapan baru pertama kali ditekan.
+- Kirim atau kosongkan input menghapus draf target, bukan draf percakapan lain.
+  Hanya state window di memori, tidak menulis isi draf ke database/log/model.
+  Draf tidak bertahan setelah aplikasi ditutup; batasnya ditampilkan pada UI.
+- 206 tests PASS, tanpa dependency/migrasi atau perubahan core/model. Manual
+  Fedora pending. Detail: docs/ui-session-drafts.md.
+- Usulan commit: `menjaga draf pesan saat berpindah percakapan`.
+  Belum commit/push; berhenti menunggu manual test/review.
+
+## Checkpoint sebelumnya — UI2
 
 - UI1 di-commit pengguna sebagai 0d8a4b8 (`uiiii`), worktree bersih sebelum UI2.
 - Percakapan baru diberi judul dari baris pertama pesan pengguna, maksimal
@@ -486,7 +500,7 @@ Qwen3-0.6B hanya disetujui sebagai smoke test Milestone 2, bukan model utama.
 ## Gerbang review
 
 Tidak commit/push sebelum pengguna review dan menyetujui.
-Usulan pesan commit UI2: `menambah judul otomatis percakapan lokal`.
+Usulan pesan commit UI3: `menjaga draf pesan saat berpindah percakapan`.
 Pengguna meminta perintah siap salin untuk commit/push dan menjalankan push
 sendiri. Acceptance M5.3 dikonfirmasi pengguna; pengguna meminta evaluasi lanjut.
-Tunggu review UI2. Eksperimen sampling ditunda sesuai prioritas pengguna.
+Tunggu review UI3. Eksperimen sampling ditunda sesuai prioritas pengguna.

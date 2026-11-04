@@ -246,3 +246,79 @@ def test_storage_failure_preserves_visible_text_and_blocks_sending(monkeypatch, 
         assert not window.new_button.isEnabled()
     finally:
         window.close()
+
+
+def test_drafts_follow_conversation_and_clear_only_when_sent(monkeypatch, tmp_path):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication(["benzie-test"])
+    class Engine:
+        def start(self, **kwargs): pass
+        def close(self): pass
+        def generate_stream(self, prompt, **kwargs): yield GenerationEvent("Jawaban uji")
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(Engine))
+    draft = "  Baris pertama\nBaris kedua <literal>  "
+    try:
+        window.message_input.setPlainText(draft)
+        # New pada composer pertama mengikat draf yang sudah ada ke percakapan.
+        window.new_button.click()
+        first = window._conversation_id
+        assert window.message_input.toPlainText() == draft
+        assert "Draf" in window.conversation_list.currentItem().text()
+        assert window._history.messages(first) == []
+        window.new_button.click()
+        second = window._conversation_id
+        assert window.message_input.toPlainText() == ""
+        window.message_input.setPlainText("Draf berbeda")
+        row = next(i for i in range(window.conversation_list.count())
+                   if window.conversation_list.item(i).data(Qt.ItemDataRole.UserRole) == first)
+        window.conversation_list.setCurrentRow(row)
+        assert window.message_input.toPlainText() == draft
+        window.send_button.click()
+        wait_for(app, lambda: window._worker is None)
+        assert "Draf" not in window.conversation_list.currentItem().text()
+        assert first not in window._drafts
+        row = next(i for i in range(window.conversation_list.count())
+                   if window.conversation_list.item(i).data(Qt.ItemDataRole.UserRole) == second)
+        window.conversation_list.setCurrentRow(row)
+        assert window.message_input.toPlainText() == "Draf berbeda"
+        assert window._history.messages(second) == []
+    finally:
+        window.close()
+
+
+def test_erasing_draft_removes_badge_and_does_not_restore_old_text(monkeypatch, tmp_path):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication(["benzie-test"])
+    window = MainWindow(initialize_application(tmp_path), chat_service=ChatService(lambda: None))
+    try:
+        window.new_button.click()
+        first = window._conversation_id
+        window.message_input.setPlainText("Draf uji")
+        window.message_input.clear()
+        assert first not in window._drafts
+        assert "Draf" not in window.conversation_list.currentItem().text()
+        window.new_button.click()
+        row = next(i for i in range(window.conversation_list.count())
+                   if window.conversation_list.item(i).data(Qt.ItemDataRole.UserRole) == first)
+        window.conversation_list.setCurrentRow(row)
+        assert not window.message_input.toPlainText()
+    finally:
+        window.close()
+
+
+def test_unsent_draft_is_not_written_to_history_or_restored_after_restart(monkeypatch, tmp_path):
+    monkeypatch.setenv("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication(["benzie-test"])
+    state = initialize_application(tmp_path)
+    window = MainWindow(state, chat_service=ChatService(lambda: None))
+    window.new_button.click()
+    cid = window._conversation_id
+    window.message_input.setPlainText("Draf hanya dalam memori")
+    window.close()
+    reopened = MainWindow(state, chat_service=ChatService(lambda: None))
+    try:
+        assert reopened._history.messages(cid) == []
+        assert not reopened.message_input.toPlainText()
+        assert "Draf" not in reopened.conversation_list.currentItem().text()
+    finally:
+        reopened.close()

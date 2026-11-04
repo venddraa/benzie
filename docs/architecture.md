@@ -15,6 +15,11 @@ judul itu jika judul masih default dan belum ada pesan user. Judul/aktivitas/
 pesan berada dalam transaksi sama; schema tidak berubah. UI refresh heading
 sesudah worker selesai, tanpa SQL atau pemanggilan model untuk membuat judul.
 
+UI3: MainWindow memiliki dictionary draf per conversation ID (None sebelum
+percakapan awal dibuat). Perubahan input memperbarui state/marker sidebar,
+navigasi memulihkan input target. Kirim menghapus draf target. State ini tidak
+masuk database, log, atau prompt dan berakhir bersama sesi aplikasi.
+
 M5.2 menambahkan installer shortcut development scripts/desktop_launcher.py.
 Desktop entry per-user menunjuk interpreter .venv absolut (tanpa resolve
 symlink interpreter agar venv tetap berlaku), argumen -m benzie, Terminal=false,

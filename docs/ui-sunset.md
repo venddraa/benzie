@@ -50,3 +50,6 @@ Preview development berada di /tmp, tidak masuk Git. README tetap benzie.
 
 Pembaruan UI2: percakapan baru kini memakai judul dari pesan pertama, tanpa
 LLM atau rename history lama. [Perilaku dan manual test](ui-conversation-titles.md).
+
+Pembaruan UI3: input belum dikirim dipertahankan saat navigasi selama aplikasi
+terbuka; sidebar memberi marker Draf. [Batas sesi dan manual](ui-session-drafts.md).
